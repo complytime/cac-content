@@ -12,7 +12,6 @@ jobs:
 
     steps:
     - name: Check if the PR comes from the sync of OSCAL content
-      id: check_pr_source
       run: |
         if [[ "${{ github.event.pull_request.merged }}" == "true" ]]; then
           PR_TITLE="${{ github.event.pull_request.title }}"
@@ -32,7 +31,7 @@ jobs:
   check-cac-content-update:
     runs-on: ubuntu-latest
     needs: check-pr-message
-    if: ${{ steps.check_pr_source.outputs.result == 'true' }}
+    if: ${{ needs.check-pr-message.outputs.result == 'true' }}
     steps:
       # Step 1: Set up Python 3
       - name: Set up Python 3
@@ -56,8 +55,6 @@ jobs:
         with:
           repository: ComplianceAsCode/content-test-filtering
           path: ctf
-          token: ${{ secrets.GITHUB_TOKEN }}  # Use the default GitHub token for authentication
-
       # Step 5: Detect content changes in the PR
       - name: Detect content changes in the PR
         run: |
