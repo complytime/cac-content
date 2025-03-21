@@ -10,10 +10,10 @@ jobs:
 
     steps:
       - name: Check if the PR come from the sycn of OSCAL content
-        if: github.event.pull_request.merged == true
+        if [[ "${{ github.event.pull_request.merged }}" == "true" ]]; then
         run: |
-          PR_TITLE=$(github.event.pull_request.title)
-          PR_BODY=$(github.event.pull_request.body)
+          PR_TITLE=${{ github.event.pull_request.title }}
+          PR_BODY=${{ github.event.pull_request.body }}
 
           echo "PR Title: $PR_TITLE"
           echo "PR Body: $PR_BODY"
