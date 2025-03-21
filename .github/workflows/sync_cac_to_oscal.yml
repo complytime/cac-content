@@ -1,0 +1,30 @@
+name: Sync CaC content to OSCAL
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+
+jobs:
+  check-pr-message:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check if the PR come from the sycn of OSCAL content
+        if: github.event.pull_request.merged == true
+        run: |
+          PR_TITLE=$(github.event.pull_request.title)
+          PR_BODY=$(github.event.pull_request.body)
+
+          echo "PR Title: $PR_TITLE"
+          echo "PR Body: $PR_BODY"
+
+          # Check if the title or body contains "automate PR from xx"
+          if [[ "$PR_TITLE" == *"automate PR from xx"* ]] || [[ "$PR_BODY" == *"automate PR from xx"* ]]; then
+            echo "The PR comes from xx 'automate PR from xx'. The task of Sync CaC content to OSCAL will exit."
+            exit 1 
+          else
+            echo "Start to check the content updates"
+          fi
+
