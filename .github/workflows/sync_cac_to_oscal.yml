@@ -1,6 +1,8 @@
 name: Sync CaC content to OSCAL
 on:
-  push:
+  pull_request:
+    types:
+      - closed
     branches:
       - master
 
