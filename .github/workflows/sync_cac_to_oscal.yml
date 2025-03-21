@@ -25,13 +25,13 @@ jobs:
             echo "Skipping further checks."
             exit 0
           else
-            echo "::set-output name=result::true"
+            echo "check_content_update=true" >> $GITHUB_ENV
           fi
         fi
   check-cac-content-update:
     runs-on: ubuntu-latest
     needs: check-pr-message
-    if: ${{ needs.check-pr-message.outputs.result == 'true' }}
+    if: ${{ env.check_content_update == 'true' }}
     steps:
       # Step 1: Set up Python 3
       - name: Set up Python 3
