@@ -2,7 +2,7 @@ name: Sync CaC content to OSCAL
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   check-pr-message:
