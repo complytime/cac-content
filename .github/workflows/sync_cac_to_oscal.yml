@@ -86,14 +86,38 @@ jobs:
             fi
             i=$((i + 1))
           done < output.json
-      - name: Test if there are no controls changes
-        run: echo "CTF_OUTPUT_SIZE=$(stat --printf="%s" controls.json)" >> $GITHUB_OUTPUT
-        id: ctf
-      - name: Get control attribute
-        if: ${{ steps.ctf.outputs.CTF_OUTPUT_SIZE != '0' }}
-        id: controls
-        uses: notiz-dev/github-action-json-property@a5a9c668b16513c737c3e1f8956772c99c73f6e8 # v0.2.0
+      - name: Check file existence
+        id: check_files
+        uses: andstor/file-existence-action@v3
         with:
-          path: 'controls.json'
-          prop_path: 'controls'
-      - run: echo ${{steps.controls.outputs.prop}}
+          files: "controls.json"
+      - name: Checkout relevant repos
+        # TODO: Update the condition
+        if: steps.check_files.outputs.files_exists == 'true'
+        run: |
+          git clone https://github.com/huiwangredhat/trestle-repo.git
+          git clone https://github.com/ComplianceAsCode/content.git
+          git clone https://github.com/complytime/trestle-bot.git
+      - name: Setup trestlebot
+        run: |
+          cd trestle-bot
+          python3.9 -m pip install --no-cache-dir --upgrade pip setuptools
+          python3.9 -m pip install --no-cache-dir "poetry==1.7.1"
+      - name: Sync catalog
+        if: steps.check_files.outputs.files_exists == 'true'
+        run: |
+          cd trestle-bot
+          CONTROLS=$(cat ../controls.json | jq -r '.controls[]')
+          pr_title="${{ github.event.pull_request.title }}"
+          for control in $CONTROLS; do
+            policy_id=$(echo "$control" | cut -f1 -d".")
+            if [[ "$policy_id" == *"SRG-APP"* ]] || [[ "$policy_id" == *"SRG-OS"* ]]; then
+              echo "Ignoring SRG-APP and SRG-OS: $policy_id"
+            elif [[ "$policy_id" == *"section"* ]]; then
+              echo "Section found, setting policy_id to 'cis_ocp_1_4_0'"
+              policy_id="cis_ocp_1_4_0"
+              else
+                echo "Syncing catalog with policy_id: $policy_id"
+              poetry run trestlebot sync-cac-content catalog  --repo-path ../trestle-repo --committer-email test@redhat.com --committer-name test --branch sync_cac/catalog_$pr_title --cac-content-root ../content --policy-id $policy_id --oscal-catalog $policy_id
+            fi
+          done
