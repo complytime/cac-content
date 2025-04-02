@@ -121,7 +121,7 @@ jobs:
         run: |
           cd trestle-bot
           CONTROLS=$(cat ../controls.json | jq -r '.controls[]')
-          pr_title="${{ github.event.pull_request.title }}"
+          pr_number="${{ github.event.pull_request.number }}"
           for control in $CONTROLS; do
             policy_id=$(echo "$control" | cut -f1 -d".")
             if [[ "$policy_id" == *"SRG-APP"* ]] || [[ "$policy_id" == *"SRG-OS"* ]]; then
@@ -134,6 +134,6 @@ jobs:
             else
               echo "Syncing catalog with policy_id: $policy_id"
               poetry run trestlebot sync-cac-content --help
-              poetry run trestlebot sync-cac-content catalog  --repo-path ../trestle-repo --committer-email test@redhat.com --committer-name test --branch sync_cac/catalog_$pr_title --cac-content-root ../content --policy-id $policy_id --oscal-catalog $policy_id --debug
+              poetry run trestlebot sync-cac-content catalog  --repo-path ../trestle-repo --committer-email test@redhat.com --committer-name test --branch sync_cac/catalog_$pr_number --cac-content-root ../content --policy-id $policy_id --oscal-catalog $policy_id --debug
             fi
           done
