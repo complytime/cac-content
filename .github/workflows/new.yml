@@ -63,49 +63,24 @@ jobs:
       - name: Test if there are no content changes
         run: echo "CTF_OUTPUT_SIZE=$(stat --printf="%s" output.json)" >> $GITHUB_OUTPUT
         id: ctf
-      - uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4
-        if: ${{ steps.ctf.outputs.CTF_OUTPUT_SIZE != '0' }}
-        with:
-          name: output
-          path: output.json
       - name: Print changes to content detected if any
         if: ${{ steps.ctf.outputs.CTF_OUTPUT_SIZE != '0' }}
         run: cat output.json
-      - name: Print changes in different Files
-        if: ${{ steps.ctf.outputs.CTF_OUTPUT_SIZE != '0' }}
-        run: |
-          i=1  # Initialize the counter
-          while IFS= read -r line; do
-            # Process each line and output to a file with a dynamic name
-            if echo "$line" | grep -q "rules"; then
-              echo "$line" > "rules${i}.json"
-            elif echo "$line" | grep -q "profiles"; then
-              echo "$line" > "profiles${i}.json"
-            else
-              echo "$line" > "controls.json"
-            fi
-            i=$((i + 1))
-          done < output.json
-      - name: Check file existence
-        id: check_files
-        uses: andstor/file-existence-action@v3
-        with:
-          files: "controls.json"
       - name: Checkout CaC repo
-        if: steps.check_files.outputs.files_exists == 'true'
+        if: ${{ steps.ctf.outputs.CTF_OUTPUT_SIZE != '0' }}
         uses: actions/checkout@v4
         with:
           repository: ComplianceAsCode/content
           path: content
       - name: Checkout oscal content repo
-        if: steps.check_files.outputs.files_exists == 'true'
+        if: ${{ steps.ctf.outputs.CTF_OUTPUT_SIZE != '0' }}
         uses: actions/checkout@v4
         with:
           repository: huiwangredhat/trestle-repo
           path: trestle-repo
           token: ${{ secrets.OSCAL_ACCESS_PAT }}
       - name: Checkout trestle-bot repo
-        if: steps.check_files.outputs.files_exists == 'true'
+        if: ${{ steps.ctf.outputs.CTF_OUTPUT_SIZE != '0' }}
         uses: actions/checkout@v4
         with:
           repository: complytime/trestle-bot
@@ -117,21 +92,39 @@ jobs:
           python3.9 -m pip install --no-cache-dir "poetry==1.7.1"
           poetry install
       - name: Sync catalog
-        if: steps.check_files.outputs.files_exists == 'true'
+        if: ${{ steps.ctf.outputs.CTF_OUTPUT_SIZE != '0' }}
         run: |
           cd trestle-bot
-          CONTROLS=$(cat ../controls.json | jq -r '.controls[]')
-          pr_number="${{ github.event.pull_request.number }}"
-          for control in $CONTROLS; do
-            policy_id=$(echo "$control" | cut -f1 -d".")
-            if [[ "$policy_id" == *"SRG-APP"* ]] || [[ "$policy_id" == *"SRG-OS"* ]]; then
-              echo "Ignoring SRG-APP and SRG-OS: $policy_id"
-            elif [[ "$policy_id" == *"section"* ]]; then
-              echo "Section found, setting policy_id to 'cis_ocp_1_4_0'"
-              policy_id="cis_ocp_1_4_0"
-              poetry run trestlebot sync-cac-content catalog  --repo-path ../trestle-repo --committer-email test@redhat.com --committer-name test --branch sync_cac/catalog_$pr_title --cac-content-root ../content --policy-id $policy_id --oscal-catalog $policy_id --target-branch main
+          while IFS= read -r line; do
+            # Process each line and output to a file with a dynamic name
+            if echo "$line" | grep -q "rules"; then
+              #TODO: sync rules
+              echo "$line" > "rules${i}.json"
+            elif echo "$line" | grep -q "profiles"; then
+              # sync profile
+              echo "$line" > "profiles${i}.json"
+
             else
-              echo "Syncing catalog with policy_id: $policy_id"
-              poetry run trestlebot sync-cac-content catalog  --repo-path ../trestle-repo --committer-email test@redhat.com --committer-name test --branch sync_cac/catalog_$pr_number --cac-content-root ../content --policy-id $policy_id --oscal-catalog $policy_id --target-branch main
+              # sync catalog
+              echo "$line" > "controls.json"
+              test=$(echo "$line" | jq -r '.controls[]')
+              echo $test
+              CONTROLS=$(cat $controls.json | jq -r '.controls[]')
+              echo "Updated controls: $CONTROLS"
+              pr_number="${{ github.event.pull_request.number }}"
+              for control in $CONTROLS; do
+                policy_id=$(echo "$control" | cut -f1 -d".")
+                if [[ "$policy_id" == *"SRG-APP"* ]] || [[ "$policy_id" == *"SRG-OS"* ]]; then
+                  echo "Ignoring SRG-APP and SRG-OS: $policy_id"
+                elif [[ "$policy_id" == *"section"* ]]; then
+                  echo "Section found, setting policy_id to 'cis_ocp_1_4_0'"
+                  policy_id="cis_ocp_1_4_0"
+                  poetry run trestlebot sync-cac-content catalog  --repo-path ../trestle-repo --committer-email test@redhat.com --committer-name test --branch sync_cac/cac_$pr_number --cac-content-root ../content --policy-id $policy_id --oscal-catalog $policy_id --target-branch main
+                else
+                  echo "Syncing catalog with policy_id: $policy_id"
+                  poetry run trestlebot sync-cac-content catalog  --repo-path ../trestle-repo --committer-email test@redhat.com --committer-name test --branch sync_cac/cac_$pr_number --cac-content-root ../content --policy-id $policy_id --oscal-catalog $policy_id --target-branch main
+                fi
+              done
             fi
-          done
+            i=$((i + 1))
+          done < ../output.json
