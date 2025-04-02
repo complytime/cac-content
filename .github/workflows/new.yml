@@ -101,11 +101,15 @@ jobs:
               #TODO: sync rules
               RULES=$(echo "$line" | jq -r '.rules[]')
               PRODUCT=$(echo "$line" | jq -r '.product')
+              echo $RULES
+              echo $PRODUCT
             elif echo "$line" | grep -q "profiles"; then
               # sync profile
               PROFILES=$(echo "$line" | jq -r '.profiles[]')
               echo $PROFILES
               PRODUCT=$(echo "$line" | jq -r '.product')
+              echo $PRODUCT
+              
             else
               # sync catalog
               CONTROLS=$(echo "$line" | jq -r '.controls[]')
