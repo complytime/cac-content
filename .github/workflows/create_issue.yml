@@ -92,6 +92,7 @@ jobs:
         with:
           files: "controls.json"
       - name: Create issue to oscal-content
+        if: ${{ secrets.OSCAL_ACCESS_PAT }}
         run: |
           curl -X POST \
             -H "Authorization: token ${{ secrets.OSCAL_ACCESS_PAT }}" \
