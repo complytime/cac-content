@@ -96,20 +96,17 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ComplianceAsCode/content
-          path: cac_content
       - name: Checkout oscal content repo
         if: steps.check_files.outputs.files_exists == 'true'
         uses: actions/checkout@v4
         with:
           repository: huiwangredhat/trestle-repo
-          path: oscal_content
           token: ${{ secrets.OSCAL_ACCESS_PAT }}
       - name: Checkout trestle-bot repo
         if: steps.check_files.outputs.files_exists == 'true'
         uses: actions/checkout@v4
         with:
           repository: complytime/trestle-bot
-          path: trestle-bot
       - name: Setup trestlebot
         run: |
           cd $GITHUB_WORKSPACE/trestle-bot
@@ -130,8 +127,9 @@ jobs:
             elif [[ "$policy_id" == *"section"* ]]; then
               echo "Section found, setting policy_id to 'cis_ocp_1_4_0'"
               policy_id="cis_ocp_1_4_0"
-              else
-                echo "Syncing catalog with policy_id: $policy_id"
-              poetry run trestlebot sync-cac-content catalog  --repo-path $GITHUB_WORKSPACE/oscal_content --committer-email test@redhat.com --committer-name test --branch sync_cac/catalog_$pr_title --cac-content-root $GITHUB_WORKSPACE/cac_content --policy-id $policy_id --oscal-catalog $policy_id
+              poetry run trestlebot sync-cac-content catalog  --repo-path $GITHUB_WORKSPACE/trestle-repo --committer-email test@redhat.com --committer-name test --branch sync_cac/catalog_$pr_title --cac-content-root $GITHUB_WORKSPACE/content --policy-id $policy_id --oscal-catalog $policy_id
+            else
+              echo "Syncing catalog with policy_id: $policy_id"
+              poetry run trestlebot sync-cac-content catalog  --repo-path $GITHUB_WORKSPACE/trestle-repo --committer-email test@redhat.com --committer-name test --branch sync_cac/catalog_$pr_title --cac-content-root $GITHUB_WORKSPACE/content --policy-id $policy_id --oscal-catalog $policy_id
             fi
           done
