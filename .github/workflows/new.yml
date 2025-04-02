@@ -138,6 +138,9 @@ jobs:
               poetry run trestlebot sync-cac-content catalog  --repo-path $GITHUB_WORKSPACE/trestle-repo --committer-email test@redhat.com --committer-name test --branch sync_cac/catalog_$pr_title --cac-content-root $GITHUB_WORKSPACE/content --policy-id $policy_id --oscal-catalog $policy_id
             else
               echo "Syncing catalog with policy_id: $policy_id"
+              poetry run trestlebot sync-cac-content --help
+              echo $GITHUB_WORKSPACE
+              echo $GITHUB_WORKSPACE/trestle-repo
               poetry run trestlebot sync-cac-content catalog  --repo-path $GITHUB_WORKSPACE/trestle-repo --committer-email test@redhat.com --committer-name test --branch sync_cac/catalog_$pr_title --cac-content-root $GITHUB_WORKSPACE/content --policy-id $policy_id --oscal-catalog $policy_id
             fi
           done
