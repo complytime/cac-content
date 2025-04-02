@@ -91,6 +91,8 @@ jobs:
         uses: andstor/file-existence-action@v3
         with:
           files: "controls.json"
+      - name: Checkout repository
+        uses: actions/checkout@v4
       - name: Create issue to oscal-content
         if: ${{ secrets.OSCAL_ACCESS_PAT != '' }}
         run: |
