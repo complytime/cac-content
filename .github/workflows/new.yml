@@ -112,19 +112,14 @@ jobs:
           path: trestle-bot
       - name: Setup trestlebot
         run: |
-          ls $GITHUB_WORKSPACE
-          ls $GITHUB_WORKSPACE/trestle-bot
-          ls $GITHUB_WORKSPACE/trestle-repo
-          ls $GITHUB_WORKSPACE/content
-          cd $GITHUB_WORKSPACE/trestle-bot
+          cd trestle-bot
           python3.9 -m pip install --no-cache-dir --upgrade pip setuptools
           python3.9 -m pip install --no-cache-dir "poetry==1.7.1"
           poetry install
       - name: Sync catalog
         if: steps.check_files.outputs.files_exists == 'true'
         run: |
-          ls $GITHUB_WORKSPACE
-          cd $GITHUB_WORKSPACE/trestle-bot
+          cd trestle-bot
           CONTROLS=$(cat ../controls.json | jq -r '.controls[]')
           pr_title="${{ github.event.pull_request.title }}"
           for control in $CONTROLS; do
@@ -135,12 +130,10 @@ jobs:
               echo "Section found, setting policy_id to 'cis_ocp_1_4_0'"
               policy_id="cis_ocp_1_4_0"
               poetry run trestlebot sync-cac-content --help
-              poetry run trestlebot sync-cac-content catalog  --repo-path $GITHUB_WORKSPACE/trestle-repo --committer-email test@redhat.com --committer-name test --branch sync_cac/catalog_$pr_title --cac-content-root $GITHUB_WORKSPACE/content --policy-id $policy_id --oscal-catalog $policy_id
+              poetry run trestlebot sync-cac-content catalog  --repo-path ../trestle-repo --committer-email test@redhat.com --committer-name test --branch sync_cac/catalog_$pr_title --cac-content-root ../content --policy-id $policy_id --oscal-catalog $policy_id
             else
               echo "Syncing catalog with policy_id: $policy_id"
               poetry run trestlebot sync-cac-content --help
-              echo $GITHUB_WORKSPACE
-              echo $GITHUB_WORKSPACE/trestle-repo
-              poetry run trestlebot sync-cac-content catalog  --repo-path $GITHUB_WORKSPACE/trestle-repo --committer-email test@redhat.com --committer-name test --branch sync_cac/catalog_$pr_title --cac-content-root $GITHUB_WORKSPACE/content --policy-id $policy_id --oscal-catalog $policy_id
+              poetry run trestlebot sync-cac-content catalog  --repo-path ../trestle-repo --committer-email test@redhat.com --committer-name test --branch sync_cac/catalog_$pr_title --cac-content-root ../content --policy-id $policy_id --oscal-catalog $policy_id --debug
             fi
           done
