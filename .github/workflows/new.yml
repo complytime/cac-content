@@ -99,18 +99,17 @@ jobs:
             # Process each line and output to a file with a dynamic name
             if echo "$line" | grep -q "rules"; then
               #TODO: sync rules
-              echo "$line" > "rules${i}.json"
+              RULES=$(echo "$line" | jq -r '.rules[]')
+              PRODUCT=$(echo "$line" | jq -r '.product')
             elif echo "$line" | grep -q "profiles"; then
               # sync profile
-              echo "$line" > "profiles${i}.json"
-
+              PROFILES=$(echo "$line" | jq -r '.profiles[]')
+              echo $PROFILES
+              PRODUCT=$(echo "$line" | jq -r '.product')
             else
               # sync catalog
-              echo "$line" > "controls.json"
-              test=$(echo "$line" | jq -r '.controls[]')
-              echo $test
-              CONTROLS=$(cat $controls.json | jq -r '.controls[]')
-              echo "Updated controls: $CONTROLS"
+              CONTROLS=$(echo "$line" | jq -r '.controls[]')
+              echo $CONTROLS
               pr_number="${{ github.event.pull_request.number }}"
               for control in $CONTROLS; do
                 policy_id=$(echo "$control" | cut -f1 -d".")
@@ -126,5 +125,4 @@ jobs:
                 fi
               done
             fi
-            i=$((i + 1))
           done < ../output.json
