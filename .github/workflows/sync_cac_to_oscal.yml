@@ -69,15 +69,6 @@ jobs:
       - uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4
         if: ${{ steps.ctf.outputs.CTF_OUTPUT_SIZE != '0' }}
         with:
-          name: output
+          name: cac_output
           path: output.json
-      - name: Create Issue to OSCAL content repo
-        run: |
-          curl -X POST \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -d '{
-                  "title": "Automated Issue from CAC update",
-                  "body": "Created by CaC update PR number.",
-                }' \
-            "https://api.github.com/repos/huiwangredhat/trestle-repo/issues"
 
