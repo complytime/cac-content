@@ -112,14 +112,15 @@ jobs:
           path: trestle-bot
       - name: Setup trestlebot
         run: |
-          cd trestle-bot
+          cd $GITHUB_WORKSPACE/trestle-bot
           python3.9 -m pip install --no-cache-dir --upgrade pip setuptools
           python3.9 -m pip install --no-cache-dir "poetry==1.7.1"
           poetry install
       - name: Sync catalog
         if: steps.check_files.outputs.files_exists == 'true'
         run: |
-          cd trestle-bot
+          ls $GITHUB_WORKSPACE
+          cd $GITHUB_WORKSPACE/trestle-bot
           CONTROLS=$(cat ../controls.json | jq -r '.controls[]')
           pr_title="${{ github.event.pull_request.title }}"
           for control in $CONTROLS; do
@@ -131,6 +132,6 @@ jobs:
               policy_id="cis_ocp_1_4_0"
               else
                 echo "Syncing catalog with policy_id: $policy_id"
-              poetry run trestlebot sync-cac-content catalog  --repo-path ../oscal_content --committer-email test@redhat.com --committer-name test --branch sync_cac/catalog_$pr_title --cac-content-root ../cac_content --policy-id $policy_id --oscal-catalog $policy_id
+              poetry run trestlebot sync-cac-content catalog  --repo-path $GITHUB_WORKSPACE/oscal_content --committer-email test@redhat.com --committer-name test --branch sync_cac/catalog_$pr_title --cac-content-root $GITHUB_WORKSPACE/cac_content --policy-id $policy_id --oscal-catalog $policy_id
             fi
           done
