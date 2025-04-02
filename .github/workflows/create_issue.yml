@@ -94,7 +94,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Create issue to oscal-content
-        if: ${{ secrets.OSCAL_ACCESS_PAT != '' }}
         run: |
           curl -X POST \
             -H "Authorization: token ${{ secrets.OSCAL_ACCESS_PAT }}" \
