@@ -56,9 +56,6 @@ jobs:
       # Step 5: Detect content changes in the PR
       - name: Detect content changes in the PR
         run: |
-          # Todo
-          # output.json should be change to output_$PR_number the PR_number 
-          # pr_number="${{ github.event.pull_request.number }}"
           python ctf/content_test_filtering.py pr \
             --base d2d1faf6db138f649c235af0f701cdfc110a3ffb \
             --remote_repo https://github.com/ComplianceAsCode/content \
@@ -71,12 +68,57 @@ jobs:
         with:
           name: output
           path: output.json
-      - name: Create Issue to OSCAL content repo
+      - name: Print changes to content detected if any
+        if: ${{ steps.ctf.outputs.CTF_OUTPUT_SIZE != '0' }}
+        run: cat output.json
+      - name: Print changes in different Files
+        if: ${{ steps.ctf.outputs.CTF_OUTPUT_SIZE != '0' }}
         run: |
-          curl -X POST \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -d '{
-                  "title": "Automated Issue from CAC update",
-                  "body": "Created by CaC update PR number.",
-                }' \
-            "https://api.github.com/repos/huiwangredhat/trestle-repo/issues"
+          i=1  # Initialize the counter
+          while IFS= read -r line; do
+            # Process each line and output to a file with a dynamic name
+            if echo "$line" | grep -q "rules"; then
+              echo "$line" > "rules${i}.json"
+            elif echo "$line" | grep -q "profiles"; then
+              echo "$line" > "profiles${i}.json"
+            else
+              echo "$line" > "controls.json"
+            fi
+            i=$((i + 1))
+          done < output.json
+      - name: Check file existence
+        id: check_files
+        uses: andstor/file-existence-action@v3
+        with:
+          files: "controls.json"
+      - name: Checkout relevant repos
+        # TODO: Update the condition
+        if: steps.check_files.outputs.files_exists == 'true'
+        run: |
+          git clone https://github.com/huiwangredhat/trestle-repo.git
+          git clone https://github.com/ComplianceAsCode/content.git
+          git clone https://github.com/complytime/trestle-bot.git
+      - name: Setup trestlebot
+        run: |
+          cd trestle-bot
+          python3.9 -m pip install --no-cache-dir --upgrade pip setuptools
+          python3.9 -m pip install --no-cache-dir "poetry==1.7.1"
+          poetry install
+      - name: Sync catalog
+        if: steps.check_files.outputs.files_exists == 'true'
+        run: |
+          cd trestle-bot
+          CONTROLS=$(cat ../controls.json | jq -r '.controls[]')
+          pr_title="${{ github.event.pull_request.title }}"
+          for control in $CONTROLS; do
+            policy_id=$(echo "$control" | cut -f1 -d".")
+            if [[ "$policy_id" == *"SRG-APP"* ]] || [[ "$policy_id" == *"SRG-OS"* ]]; then
+              echo "Ignoring SRG-APP and SRG-OS: $policy_id"
+            elif [[ "$policy_id" == *"section"* ]]; then
+              echo "Section found, setting policy_id to 'cis_ocp_1_4_0'"
+              policy_id="cis_ocp_1_4_0"
+              else
+                echo "Syncing catalog with policy_id: $policy_id"
+              poetry run trestlebot sync-cac-content catalog  --repo-path ../trestle-repo --committer-email test@redhat.com --committer-name test --branch sync_cac/catalog_$pr_title --cac-content-root ../content --policy-id $policy_id --oscal-catalog $policy_id
+            fi
+          done
