@@ -102,6 +102,7 @@ jobs:
           repository: complytime/trestle-bot
           path: trestle-bot
       - name: Setup trestlebot
+        if: ${{ steps.ctf.outputs.CTF_OUTPUT_SIZE != '0' }}
         run: |
           cd trestle-bot
           python3.9 -m venv venv
