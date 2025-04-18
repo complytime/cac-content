@@ -186,7 +186,6 @@ jobs:
           cd trestle-bot && source venv/bin/activate
           RHEL_PRODUCTS=(rhel8 rhel9 rhel10)
           while IFS= read -r line; do # Sync the controls updates firstly
-            echo "Handle the CAC updates: $line"
             if [[ "$line" == *controls* ]]; then # Sync the controls updates
               # Sync updated CAC controls to OSCAL catalogs, profiles and component-definition
               CONTROLS=$(echo "$line" | jq -r '.controls[]')
@@ -222,7 +221,7 @@ jobs:
                     map=$(echo "$line" | sed "s/'/\"/g")
                     map_policy_id=$(echo "$map" | jq -r '.policy_id')
                     if [[ "$map_policy_id" == "$policy_id" ]]; then
-                      echo "Sync product $product component-definition according to the updated control $policy_id........"
+                      echo "Sync product $product component-definition according to the updated control: $policy_id........"
                       profile=$(echo "$map" | jq -r '.profile_name') # Map the profile
                       levels=$(echo "$map" | jq -r '.levels[]')
                       # Map the CAC profile and the OSCAL profile withe different level
@@ -236,7 +235,6 @@ jobs:
                         fi
                         echo "poetry run trestlebot sync-cac-content component-definition --repo-path ../oscal-content --committer-email test@redhat.com --committer-name test --branch sync_cac_pr$pr_number --cac-content-root $GITHUB_WORKSPACE/cac-content --product $product  --component-definition-type $type --cac-profile $profile  --oscal-profile $oscal_profile"
                         sed -i '/href/s|\(trestle://\)[^ ]*\(catalogs\)|\1\2|g' ../oscal-content/profiles/$oscal_profile/profile.json
-                        
                         poetry run trestlebot sync-cac-content component-definition --repo-path ../oscal-content --committer-email test@redhat.com --committer-name test --branch sync_cac_pr$pr_number --cac-content-root $GITHUB_WORKSPACE/cac-content --product $product  --component-definition-type $type --cac-profile $profile  --oscal-profile $oscal_profile
                         type="validation"
                         echo "poetry run trestlebot sync-cac-content component-definition --repo-path ../oscal-content --committer-email test@redhat.com --committer-name test --branch sync_cac_pr$pr_number --cac-content-root $GITHUB_WORKSPACE/cac-content --product $product  --component-definition-type $type --cac-profile $profile  --oscal-profile $oscal_profile"
@@ -267,9 +265,9 @@ jobs:
                       # Get the policy id and level from the map according to the updated profile
                       if [[ "$updated_profile" == "$profile" ]]; then
                         policy_id=$(echo "$map" | jq -r '.policy_id')
-                        echo "Sync product $product profiles according to the updated profile $profile........"
+                        echo "Sync product $product profiles according to the updated profile: $profile........"
                         echo "poetry run trestlebot sync-cac-content profile  --repo-path ../oscal-content --committer-email test@redhat.com --committer-name test --branch sync_cac_pr$pr_number --cac-content-root $GITHUB_WORKSPACE/cac-content --product $product --cac-policy-id $policy_id --oscal-catalog $policy_id"
-                        poetry run trestlebot sync-cac-content profile  --repo-path ../oscal-content --committer-email test@redhat.com --committer-name test --branch sync_cac_pr$pr_number --cac-content-root $GITHUB_WORKSPACE./cac-content --product $product --cac-policy-id $policy_id --oscal-catalog $policy_id
+                        poetry run trestlebot sync-cac-content profile  --repo-path ../oscal-content --committer-email test@redhat.com --committer-name test --branch sync_cac_pr$pr_number --cac-content-root $GITHUB_WORKSPACE/cac-content --product $product --cac-policy-id $policy_id --oscal-catalog $policy_id
                         levels=$(echo "$map" | jq -r '.levels[]')
                         for level in "${levels[@]}"; do
                           if [[ "$product" == *'rhel'* ]] ; then
@@ -278,9 +276,9 @@ jobs:
                             type="service"
                           fi
                           oscal_profile=$policy_id"-"$level
-                          echo "Sync product $product component-definition according to the updated profile $updated_profile........"
+                          echo "Sync product $product component-definition according to the updated profile: $updated_profile........"
                           echo "poetry run trestlebot sync-cac-content component-definition --repo-path ../oscal-content --committer-email test@redhat.com --committer-name test --branch sync_cac_pr$pr_number --cac-content-root $GITHUB_WORKSPACE/cac-content --product $product  --component-definition-type $type --cac-profile $profile  --oscal-profile $oscal_profile"
-                          sed -i '' '/href/s|\(trestle://\)[^ ]*\(catalogs\)|\1\2|g' ../oscal-content/profiles/$oscal_profile/profile.json
+                          sed -i '/href/s|\(trestle://\)[^ ]*\(catalogs\)|\1\2|g' ../oscal-content/profiles/$oscal_profile/profile.json
                           poetry run trestlebot sync-cac-content component-definition --repo-path ../oscal-content --committer-email test@redhat.com --committer-name test --branch sync_cac_pr$pr_number --cac-content-root $GITHUB_WORKSPACE/cac-content --product $product  --component-definition-type $type --cac-profile $profile  --oscal-profile $oscal_profile
                           type="validation"
                           echo "poetry run trestlebot sync-cac-content component-definition --repo-path ../oscal-content --committer-email test@redhat.com --committer-name test --branch sync_cac_pr$pr_number --cac-content-root $GITHUB_WORKSPACE/cac-content --product $product  --component-definition-type $type --cac-profile $profile  --oscal-profile $oscal_profile"
