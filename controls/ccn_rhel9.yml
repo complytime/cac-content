@@ -51,7 +51,7 @@ controls:
     status: automated
     rules:
       - audit_rules_session_events
-      - audit_rules_login_events_faillock
+      #- audit_rules_login_events_faillock
       - audit_rules_login_events_lastlog
 
   - id: A.3.SEC-RHEL2

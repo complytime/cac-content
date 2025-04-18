@@ -185,7 +185,7 @@ jobs:
           pr_number="${{ github.event.pull_request.number }}"
           cd trestle-bot && source venv/bin/activate
           RHEL_PRODUCTS=(rhel8 rhel9 rhel10)
-          while IFS= read -r line; do
+          while IFS= read -r line; do # Sync the controls updates firstly
             echo "Handle the CAC updates: $line"
             if [[ "$line" == *controls* ]]; then # Sync the controls updates
               # Sync updated CAC controls to OSCAL catalogs, profiles and component-definition
@@ -246,7 +246,11 @@ jobs:
                   done < $product"_map.json"
                 done
               done
-            elif [[ "$line" == *profiles* ]]; then # Sync the profiles updates
+            fi
+          done < ../output.json
+
+          while IFS= read -r line; do # Then sync the profiles updates
+            if [[ "$line" == *profiles* ]]; then
               # Sync CAC profile updates to OSCAL profile and component-definition
               PROFILES=$(echo "$line" | jq -r '.profiles[]')
               PRODUCT=$(echo "$line" | jq -r '.product')
@@ -287,7 +291,10 @@ jobs:
                   done
                 fi
               done
-            else # Sync the rules and variables updates
+            fi
+          done < ../output.json
+          while IFS= read -r line; do # Last sync the rules and variables updates
+            if [[ "$line" == *rules* ]]; then
               #TODO: as talked with Marcus, sync rules will updated later
               RULES=$(echo "$line" | jq -r '.rules[]')
               PRODUCT=$(echo "$line" | jq -r '.product')
@@ -296,6 +303,7 @@ jobs:
           done < ../output.json
       # Step 11: Create PR to OSCAL content
       - name: Create a Pull Request to OSCAL content
+        if: ${{ steps.ctf.outputs.CTF_OUTPUT_SIZE != '0' }}
         run: |
           cd oscal-content
           # Use GitHub's REST API to create a pull request
