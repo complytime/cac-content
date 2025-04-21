@@ -17,4 +17,3 @@ description: |-
 
 selections:
     - ccn_rhel9:all:intermediate
-    - enable_authselect

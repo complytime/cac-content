@@ -3,6 +3,12 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
   workflow_dispatch:
+  # The final version should execute the test whenever a PR is merged to master.
+  #pull_request:
+  #  types:
+  #    - closed
+  #  branches:
+  #    - master
 
 jobs:
   check-pr-message:
@@ -34,28 +40,26 @@ jobs:
         with:
           python-version: '3.9'
       # Step 2: Install Git and Ruby
-      - name: Install Git
+      - name: Install Git and Ruby
         run: sudo apt-get update && sudo apt-get install -y git ruby
       # Step 3: Install Python dependencies
       - name: Install dependencies
         run: |
           python3 -m pip install --upgrade pip setuptools
           pip3 install gitpython PyYAML deepdiff Jinja2 xmldiff
-      # Step 4: Checkout the ComplianceAsCode/content-test-filtering repository
+      # Step 4: Detect content changes in the PR
       - name: Checkout (CTF)
         uses: actions/checkout@v4
         with:
           repository: huiwangredhat/content-test-filtering # TODO: updated to ComplianceAsCode/content-test-filtering
           ref: filter_controls_update
           path: ctf
-  
-      # Step 5: Detect content changes in the PR
       - name: Detect content changes in the PR
         run: |
           # TODO:update the the remote_repo to ComplianceAsCode/content
           python ctf/content_test_filtering.py pr \
             --base master \
-            --remote_repo https://github.com/complytime/cac-content \
+            --remote_repo ${{ github.server_url }}/${{ github.repository }} \
             --verbose --profile --rule --output json ${{ github.event.pull_request.number }} > output.json
       - name: Test if there are no content changes
         run: echo "CTF_OUTPUT_SIZE=$(stat --printf="%s" output.json)" >> $GITHUB_OUTPUT
@@ -64,12 +68,12 @@ jobs:
         if: ${{ steps.ctf.outputs.CTF_OUTPUT_SIZE != '0' }}
         run: cat output.json
 
-      # Step 6: Setup the trestle-bot CLI run envrionment
+      # Step 5: Setup the trestle-bot CLI run envrionment
       - name: Checkout CaC repo
         if: ${{ steps.ctf.outputs.CTF_OUTPUT_SIZE != '0' }}
         uses: actions/checkout@v4
         with:
-          repository: complytime/cac-content
+          repository: ${{ github.repository }}
           ref: jinja_workaround # TODO: workaround for jinja error
           path: cac-content
       # Get the access token for content write permission to OSCAL content
@@ -128,7 +132,7 @@ jobs:
           cd trestle-bot && python3 -m venv venv && source venv/bin/activate
           python3 -m pip install --no-cache-dir "poetry==1.7.1"
           poetry install
-      # Step 7: Get profiles, controls and level mapping
+      # Step 6: Get profiles, controls and level mapping
       - name: Get profiles, controls and level mapping
         if: ${{ steps.ctf.outputs.CTF_OUTPUT_SIZE != '0' }}
         run: |
@@ -140,7 +144,7 @@ jobs:
             python scripts/get_mappings_profile_control_levels.py $product "$GITHUB_WORKSPACE/cac-content" > $map_file  2>&1
             cat $map_file
           done
-      # Step 8: Get product available controls
+      # Step 7: Get product available controls
       - name: Get product controls
         if: ${{ steps.ctf.outputs.CTF_OUTPUT_SIZE != '0' }}
         run: |
@@ -153,7 +157,7 @@ jobs:
             python scripts/get_product_controls.py $product "$GITHUB_WORKSPACE/cac-content" > $controls_file  2>&1
             cat $controls_file
           done
-      # Step 9: Check if the OSCAL content branch exists
+      # Step 8: Check if the OSCAL content branch exists
       - name: Check if the OSCAL content branch exists
         if: ${{ steps.ctf.outputs.CTF_OUTPUT_SIZE != '0' }}
         run: |
@@ -177,7 +181,7 @@ jobs:
             echo "OSCAL content branch $BRANCH_NAME doesn't exist"
           fi
 
-      # Step 10: Sync CAC content updates to OSCAL content
+      # Step 9: Sync CAC content updates to OSCAL content
       - name: Sync CAC content updates to OSCAL content
         if: ${{ steps.ctf.outputs.CTF_OUTPUT_SIZE != '0' }}
         run: |
@@ -299,7 +303,7 @@ jobs:
               echo "Skip the rules sync that only need to update the rule title"
             fi
           done < ../output.json
-      # Step 11: Create PR to OSCAL content
+      # Step 10: Create PR to OSCAL content
       - name: Create a Pull Request to OSCAL content
         if: ${{ steps.ctf.outputs.CTF_OUTPUT_SIZE != '0' }}
         run: |
