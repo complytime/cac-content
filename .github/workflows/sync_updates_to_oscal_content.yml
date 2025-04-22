@@ -1,14 +1,14 @@
 name: Sync CaC content to OSCAL
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-  workflow_dispatch:
-  # The final version should execute the test whenever a PR is merged to master.
   #pull_request:
-  #  types:
-  #    - closed
-  #  branches:
-  #    - master
+  #  types: [opened, synchronize, reopened]
+  #workflow_dispatch:
+  # The final version should execute the test whenever a PR is merged to master.
+  pull_request:
+    types:
+      - closed
+    branches:
+      - master
 
 jobs:
   check-pr-message:
@@ -58,9 +58,9 @@ jobs:
         run: |
           # TODO:update the the remote_repo to ComplianceAsCode/content
           python ctf/content_test_filtering.py pr \
-            --base master \
+            --base ${{ github.event.pull_request.base.ref }} \
             --remote_repo ${{ github.server_url }}/${{ github.repository }} \
-            --verbose --profile --rule --output json ${{ github.event.pull_request.number }} > output.json
+            --verbose --profile --rule --control --output json ${{ github.event.pull_request.number }} > output.json
       - name: Test if there are no content changes
         run: echo "CTF_OUTPUT_SIZE=$(stat --printf="%s" output.json)" >> $GITHUB_OUTPUT
         id: ctf
@@ -74,7 +74,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository }}
-          ref: jinja_workaround # TODO: workaround for jinja error
           path: cac-content
       # Get the access token for content write permission to OSCAL content
       # 1. Generate the JWT token
@@ -157,31 +156,7 @@ jobs:
             python scripts/get_product_controls.py $product "$GITHUB_WORKSPACE/cac-content" > $controls_file  2>&1
             cat $controls_file
           done
-      # Step 8: Check if the OSCAL content branch exists
-      - name: Check if the OSCAL content branch exists
-        if: ${{ steps.ctf.outputs.CTF_OUTPUT_SIZE != '0' }}
-        run: |
-          pr_number="${{ github.event.pull_request.number }}"
-          BRANCH_NAME="sync_cac_pr$pr_number"
-          cd oscal-content
-          branches=$(git branch -r | grep 'origin/sync_cac' | sed 's/origin\///')
-          echo $branches
-          exist="false"
-          for branch in $branches; do
-            echo $branch
-            if [[ "$branch" == "$BRANCH_NAME" ]]; then
-              echo "OSCAL content branch $BRANCH_NAME exists"
-              git fetch --all
-              git checkout -b sync_cac_pr$pr_number origin/sync_cac_pr$pr_number
-              exist="true"
-              break
-            fi
-          done
-          if [[ "$exist" == "false" ]]; then
-            echo "OSCAL content branch $BRANCH_NAME doesn't exist"
-          fi
-
-      # Step 9: Sync CAC content updates to OSCAL content
+      # Step 8: Sync CAC content updates to OSCAL content
       - name: Sync CAC content updates to OSCAL content
         if: ${{ steps.ctf.outputs.CTF_OUTPUT_SIZE != '0' }}
         run: |
@@ -303,7 +278,7 @@ jobs:
               echo "Skip the rules sync that only need to update the rule title"
             fi
           done < ../output.json
-      # Step 10: Create PR to OSCAL content
+      # Step 9: Create PR to OSCAL content
       - name: Create a Pull Request to OSCAL content
         if: ${{ steps.ctf.outputs.CTF_OUTPUT_SIZE != '0' }}
         run: |
