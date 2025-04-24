@@ -41,8 +41,8 @@ controls:
     - id: 1.1.1.1
       title: Ensure cramfs kernel module is not available (Automated)
       levels:
-          - l1_workstation
           - l2_server
+          - l2_workstation
       status: automated
       rules:
           - kernel_module_cramfs_disabled
