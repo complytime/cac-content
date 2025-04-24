@@ -51,7 +51,6 @@ controls:
       title: Ensure freevxfs kernel module is not available (Automated)
       levels:
           - l1_workstation
-          - l2_server
       status: automated
       rules:
           - kernel_module_freevxfs_disabled
