@@ -26,7 +26,6 @@ controls:
       This is a helper rule to reload Dconf database correctly.
     status: automated
     rules:
-      - dconf_db_up_to_date
 
   - id: enable_authselect
     title: Enable Authselect
