@@ -1,14 +1,14 @@
 name: Sync CaC content to OSCAL
 on:
-  #pull_request:
-  #  types: [opened, synchronize, reopened]
-  #workflow_dispatch:
-  # The final version should execute the test whenever a PR is merged to master.
   pull_request:
-    types:
-      - closed
-    branches:
-      - master
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+  # The final version should execute the test whenever a PR is merged to master.
+  #pull_request:
+  #  types:
+  #    - closed
+  #  branches:
+  #    - master
 
 jobs:
   check-pr-message:
@@ -229,8 +229,7 @@ jobs:
                       levels=$(echo "$map" | jq -r '.levels[]')
                       # Map the CAC profile and the OSCAL profile withe different level
                       for level in "${levels[@]}"; do
-                        oscal_profile=$policy_id"-"$level
-                        echo $oscal_profile
+                        oscal_profile=$product"-"$policy_id"-"$level
                         if [[ "$product" == *'rhel'* ]] ; then
                           type="software"
                         else
@@ -278,7 +277,7 @@ jobs:
                           else
                             type="service"
                           fi
-                          oscal_profile=$policy_id"-"$level
+                          oscal_profile=$product"-"$policy_id"-"$level
                           echo "Sync product $product component-definition according to the updated profile: $updated_profile........"
                           echo "poetry run trestlebot sync-cac-content component-definition --repo-path ../oscal-content --committer-email test@redhat.com --committer-name test --branch sync_cac_pr$pr_number --cac-content-root $GITHUB_WORKSPACE/cac-content --product $product  --component-definition-type $type --cac-profile $profile  --oscal-profile $oscal_profile"
                           sed -i '/href/s|\(trestle://\)[^ ]*\(catalogs\)|\1\2|g' ../oscal-content/profiles/$oscal_profile/profile.json
@@ -324,7 +323,7 @@ jobs:
               --title "Auto-generated PR from CAC $pr_number" \
               --head "$BRANCH_NAME" \
               --base "main" \
-              --body "This is an auto-generated PR from CAC $pr_number updates")
+              --body "This is an auto-generated PR from CAC $pr_number updates"
           fi
         env:
           GH_TOKEN: ${{ env.INSTALLATION_TOKEN }}
