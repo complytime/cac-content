@@ -14,3 +14,4 @@ interactive: true
 options:
     default: "Authorized users only. All activity may be monitored and reported."
     cis: "Authorized users only. All activity may be monitored and reported."
+    test: test

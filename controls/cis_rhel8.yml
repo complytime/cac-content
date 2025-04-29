@@ -586,7 +586,7 @@ controls:
       status: automated
       rules:
           - banner_etc_motd_cis
-          - cis_banner_text=cis
+          - cis_banner_text=test
 
     - id: 1.7.2
       title: Ensure local login warning banner is configured properly (Automated)
@@ -596,7 +596,7 @@ controls:
       status: automated
       rules:
           - banner_etc_issue_cis
-          - cis_banner_text=cis
+          - cis_banner_text=test
 
     - id: 1.7.3
       title: Ensure remote login warning banner is configured properly (Automated)
@@ -606,7 +606,7 @@ controls:
       status: automated
       rules:
           - banner_etc_issue_net_cis
-          - cis_banner_text=cis
+          - cis_banner_text=test
 
     - id: 1.7.4
       title: Ensure access to /etc/motd is configured (Automated)
@@ -1540,6 +1540,7 @@ controls:
       status: pending
       notes: |-
           New templated rule is necessary for "disableforwarding" option.
+      rules: []
       related_rules:
           - sshd_disable_tcp_forwarding
           - sshd_disable_x11_forwarding
