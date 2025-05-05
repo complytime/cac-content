@@ -22,6 +22,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 Examine documentation and interview personnel to verify that security policies and
                 operational procedures identified in Requirement 1 are managed in accordance with all
@@ -33,6 +34,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 Examine documentation and interview personnel to verify that day-to-day responsibilities
                 for performing all the activities in Requirement 1 are documented, assigned and understood
@@ -70,6 +72,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 Changes to network connections and NSCs cannot result in misconfiguration, implementation
                 of insecure services, or unauthorized network connections. Changes to network connections
@@ -83,6 +86,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 A representation of the boundaries between the CDE, all trusted networks, and all
                 untrusted networks, is maintained and available. A current network diagram(s) or other
@@ -97,6 +101,7 @@ controls:
                   - Updated as needed upon changes to the environment
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 1.2.5
@@ -105,6 +110,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             related_rules:
                 - configure_firewalld_ports
 
@@ -138,6 +144,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 Some configuration automation solution, such as Ansible could be helpful here.
 
@@ -171,10 +178,7 @@ controls:
             status: automated
             rules:
                 - configure_firewalld_ports
-                - ensure_firewall_rules_for_open_ports
                 - set_firewalld_default_zone
-                - nftables_ensure_default_deny_policy
-
           - id: 1.3.2
             title: Outbound traffic from the CDE is restricted to only traffic that
                 is necessary
@@ -185,6 +189,7 @@ controls:
             levels:
                 - base
             status: pending
+            rules: []
             notes: |-
                 It appears there is no rule in the project to restrict outbound traffic on the firewall.
                 Perhaps a rule to automates this would do more harm than good. Probably a manual
@@ -228,10 +233,7 @@ controls:
             rules:
                 - firewalld_loopback_traffic_restricted
                 - firewalld_loopback_traffic_trusted
-                - set_ipv6_loopback_traffic
                 - set_ip6tables_default_rule
-                - set_loopback_traffic
-
           - id: 1.4.2
             title: Inbound traffic from untrusted networks to trusted networks is
                 restricted.
@@ -282,6 +284,7 @@ controls:
                 disk). Account data can only be stored in volatile memory during the time necessary to
                 support the associated business process (for example, until completion of the related
                 payment card transaction).
+            rules: []
             related_rules:
                 - configure_firewalld_ports
 
@@ -326,6 +329,7 @@ controls:
                 To ensure this requirement, a manual analysis of site policy and topology is inevitable.
                 From the technical perspective, previous requirements should already cover this
                 requirement at some level.
+            rules: []
             related_rules:
         # These rules are already covered by 1.3.1.
                 - ensure_firewall_rules_for_open_ports
@@ -347,6 +351,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 Examine documentation and interview personnel to verify that security policies and
                 operational procedures identified in Requirement 2 are managed in accordance with all
@@ -362,6 +367,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 Examine documentation and interview personnel to verify that day-to-day responsibilities
                 for performing all the activities in Requirement 2 are documented, assigned and understood
@@ -416,6 +422,7 @@ controls:
             title: 'Primary functions requiring different security levels are managed'
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 2.2.4
@@ -428,14 +435,9 @@ controls:
                 - base
             status: automated
             rules:
-                - mask_nonessential_services
                 - package_dhcp_removed
                 - package_ftp_removed
                 - package_net-snmp_removed
-                - package_rsh_removed
-                - package_rsh-server_removed
-                - package_talk_removed
-                - package_talk-server_removed
                 - package_telnet_removed
                 - package_telnet-server_removed
                 - package_tftp_removed
@@ -471,6 +473,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 Known insecure services are removed or disabled by 2.2.4
                 General security measures are covered by 1.2.6
@@ -499,7 +502,6 @@ controls:
         # at files protection
                 - file_at_deny_not_exist
                 - file_groupowner_at_allow
-                - file_owner_at_allow
                 - file_permissions_at_allow
         # cron files protection
                 - file_cron_deny_not_exist
@@ -624,6 +626,7 @@ controls:
             status: supported
             notes: |-
                 Wireless interfaces are disabled by 1.3.3.
+            rules: []
             related_rules:
                 - wireless_disable_interfaces
 
@@ -638,6 +641,7 @@ controls:
             status: supported
             notes: |-
                 Wireless interfaces are disabled by 1.3.3.
+            rules: []
             related_rules:
                 - wireless_disable_interfaces
 
@@ -655,6 +659,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 Examine documentation and interview personnel to verify that security policies and
                 operational procedures identified in Requirement 3 are managed in accordance with all
@@ -666,6 +671,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 Examine documentation and interview personnel to verify that day-to-day responsibilities
                 for performing all the activities in Requirement 3 are documented, assigned and understood
@@ -697,6 +703,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 This requirement is very dependent on each site policies and business model.
                 Local policies should be consulted and audited. Manual checking is reasonable.
@@ -768,6 +775,7 @@ controls:
                   status: partial
                   notes: |-
                       Same rules already selected in 3.3.1.1 are valid here, but they are not repeated.
+                  rules: []
                   related_rules:
                       - coredump_disable_backtraces
                       - coredump_disable_storage
@@ -787,6 +795,7 @@ controls:
                   status: partial
                   notes: |-
                       Same rules already selected in 3.3.1.1 are valid here, but they are not repeated.
+                  rules: []
                   related_rules:
                       - coredump_disable_backtraces
                       - coredump_disable_storage
@@ -812,6 +821,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 This requirement is a best practice until 31 March 2025, after which it will be required
                 and must be fully considered during a PCI DSS assessment.
@@ -831,6 +841,7 @@ controls:
                 fully considered during a PCI DSS assessment.
             levels:
                 - base
+            rules: []
             status: manual
 
     - id: '3.4'
@@ -854,6 +865,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 Consists on examining documented policies and procedures, checking system configurations
                 and observing relevant applications.
@@ -930,6 +942,7 @@ controls:
                       However it would be first necessary to include a platform conditional in these rules
                       before selecting them so they are applicable only if the respective packages are
                       installed.
+                  rules: []
                   related_rules:
                       - configure_libreswan_crypto_policy
                       - configure_openssl_crypto_policy
@@ -943,9 +956,7 @@ controls:
                   levels:
                       - base
                   status: automated
-                  rules:
-                      - package_cryptsetup-luks_installed
-
+                  rules: []
                 - id: 3.5.1.3
                   title: If disk-level or partition-level encryption is used (rather
                       than file-, column-, or field--level database encryption) to
@@ -961,6 +972,7 @@ controls:
                   levels:
                       - base
                   status: manual
+                  rules: []
                   notes: |-
                       To properly check this requirement, site policies and documentation should be consulted.
 
@@ -1001,6 +1013,7 @@ controls:
                       location of devices, as outlined in Requirement 12.3.4.
                   levels:
                       - base
+                  rules: []
                   status: manual
 
                 - id: 3.6.1.2
@@ -1023,6 +1036,7 @@ controls:
                       generated via one of the following
                   levels:
                       - base
+                  rules: []
                   status: manual
 
                 - id: 3.6.1.3
@@ -1032,6 +1046,7 @@ controls:
                       Access to cleartext cryptographic key components is restricted to necessary personnel.
                   levels:
                       - base
+                  rules: []
                   status: manual
 
                 - id: 3.6.1.4
@@ -1040,6 +1055,7 @@ controls:
                       Cryptographic keys are retained only where necessary.
                   levels:
                       - base
+                  rules: []
                   status: manual
 
     - id: '3.7'
@@ -1058,6 +1074,7 @@ controls:
                 Strong cryptographic keys are generated.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 3.7.2
@@ -1068,6 +1085,7 @@ controls:
                 Cryptographic keys are secured during distribution.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 3.7.3
@@ -1079,6 +1097,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 The scope of this requirement seems much wider going even to application level, which
                 might be different for each site. Regarding local system there are some technical measures
@@ -1098,6 +1117,7 @@ controls:
                 - A process for key changes at the end of the defined cryptoperiod.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 3.7.5
@@ -1115,6 +1135,7 @@ controls:
                 - Retired or replaced keys are not used for encryption operations.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 3.7.6
@@ -1131,6 +1152,7 @@ controls:
                 generated via one of the following
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 3.7.7
@@ -1140,6 +1162,7 @@ controls:
                 Cryptographic keys cannot be substituted by unauthorized personnel.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 3.7.8
@@ -1152,6 +1175,7 @@ controls:
                 operations and can access assistance and guidance when required.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 3.7.9
@@ -1166,6 +1190,7 @@ controls:
                 a service provider.
             levels:
                 - base
+            rules: []
             status: manual
 
     - id: '4.1'
@@ -1181,6 +1206,7 @@ controls:
                 to all affected parties.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 4.1.2
@@ -1189,6 +1215,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 Examine documentation and interview personnel to verify that day-to-day responsibilities
                 for performing all the activities in Requirement 4 are documented, assigned and understood
@@ -1230,6 +1257,7 @@ controls:
                       which it will be required and must be fully considered during a PCI DSS assessment.
                   levels:
                       - base
+                  rules: []
                   status: manual
 
                 - id: 4.2.1.2
@@ -1243,6 +1271,7 @@ controls:
                   status: manual
                   notes: |-
                       Wireless interfaces are disabled by 1.3.3.
+                  rules: []
                   related_rules:
                       - wireless_disable_interfaces
 
@@ -1261,6 +1290,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 Some known insecure services and protocols are disabled by 2.2.4.
                 If any specific end-user messaging technology is used, it should be manually checked in
@@ -1280,6 +1310,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 Examine documentation and interview personnel to verify that security policies and
                 operational procedures identified in Requirement 5 are managed in accordance with all
@@ -1291,6 +1322,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 Examine documentation and interview personnel to verify that day-to-day responsibilities
                 for performing all the activities in Requirement 5 are documented, assigned and understood
@@ -1315,6 +1347,7 @@ controls:
             levels:
                 - base
             status: supported
+            rules: []
             notes: |-
                 There are many options of anti-malware and the criteria for any adopted solution or
                 approach relies on each site policy. Technologies are supported but manual assessment is
@@ -1325,6 +1358,7 @@ controls:
                 malware and removes, blocks, or contains all known types of malware.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 5.2.3
@@ -1353,6 +1387,7 @@ controls:
                       assessment.
                   levels:
                       - base
+                  rules: []
                   status: manual
 
     - id: '5.3'
@@ -1367,6 +1402,7 @@ controls:
                 Anti-malware mechanisms can detect and address the latest malware threats.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 5.3.2
@@ -1389,6 +1425,7 @@ controls:
                       it will be required and must be fully considered during a PCI DSS assessment.
                   levels:
                       - base
+                  rules: []
                   status: manual
 
           - id: 5.3.3
@@ -1399,6 +1436,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 Related measures are covered by 3.4.2.
 
@@ -1410,6 +1448,7 @@ controls:
                 least 12 months.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 5.3.5
@@ -1426,6 +1465,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 Related measures are covered by 2.2.6 requirement and 8.2 section.
 
@@ -1449,6 +1489,7 @@ controls:
                 considered during a PCI DSS assessment.
             levels:
                 - base
+            rules: []
             status: manual
 
     - id: '6.1'
@@ -1465,6 +1506,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 Examine documentation and interview personnel to verify that security policies and
                 operational procedures identified in Requirement 6 are managed in accordance with all
@@ -1476,6 +1518,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 Examine documentation and interview personnel to verify that day-to-day responsibilities
                 for performing all the activities in Requirement 6 are documented, assigned and understood
@@ -1497,6 +1540,7 @@ controls:
                 software development lifecycle.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 6.2.2
@@ -1511,6 +1555,7 @@ controls:
                 vulnerabilities in software.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 6.2.3
@@ -1539,6 +1584,7 @@ controls:
                       - Reviewed and approved by management prior to release.
                   levels:
                       - base
+                  rules: []
                   status: manual
 
           - id: 6.2.4
@@ -1548,6 +1594,7 @@ controls:
                 software.
             levels:
                 - base
+            rules: []
             status: manual
 
     - id: '6.3'
@@ -1560,6 +1607,7 @@ controls:
             title: Security vulnerabilities are identified and managed
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 6.3.2
@@ -1573,6 +1621,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 This requirement is a best practice until 31 March 2025, after which it will be required
                 and must be fully considered during a PCI DSS assessment.
@@ -1593,8 +1642,6 @@ controls:
             status: automated
             rules:
                 - ensure_redhat_gpgkey_installed
-                - ensure_suse_gpgkey_installed
-                - ensure_almalinux_gpgkey_installed
                 - ensure_gpgcheck_globally_activated
                 - ensure_gpgcheck_never_disabled
                 - security_patches_up_to_date
@@ -1631,6 +1678,7 @@ controls:
                   investigated.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 6.4.2
@@ -1638,6 +1686,7 @@ controls:
                 is deployed that continually detects and prevents web-based attacks.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 6.4.3
@@ -1652,6 +1701,7 @@ controls:
                 justification as to why each is necessary.
             levels:
                 - base
+            rules: []
             status: manual
 
     - id: '6.5'
@@ -1665,6 +1715,7 @@ controls:
                 are made according to established procedures.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 6.5.2
@@ -1678,6 +1729,7 @@ controls:
                 12.5.2.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 6.5.3
@@ -1688,6 +1740,7 @@ controls:
                 environments.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 6.5.4
@@ -1705,6 +1758,7 @@ controls:
                 access to the production environment.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 6.5.5
@@ -1715,6 +1769,7 @@ controls:
                 Live PANs cannot be present in pre-production environments outside the CDE.s
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 6.5.6
@@ -1724,6 +1779,7 @@ controls:
                 Test data and test accounts cannot exist in production environments.
             levels:
                 - base
+            rules: []
             status: manual
 
     - id: '7.1'
@@ -1740,6 +1796,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 Examine documentation and interview personnel to verify that security policies and
                 operational procedures identified in Requirement 7 are managed in accordance with all
@@ -1751,6 +1808,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 Examine documentation and interview personnel to verify that day-to-day responsibilities
                 for performing all the activities in Requirement 7 are documented, assigned and understood
@@ -1774,6 +1832,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 General access are restricted by 2.2.6 and 8.2 section. This requirement is more about
                 checking granting access process.
@@ -1784,6 +1843,7 @@ controls:
                 to perform job responsibilities.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 7.2.3
@@ -1793,6 +1853,7 @@ controls:
                 authorization.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 7.2.4
@@ -1807,6 +1868,7 @@ controls:
                 - Management acknowledges that access remains appropriate.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 7.2.5
@@ -1829,6 +1891,7 @@ controls:
                       access privileges are reviewed.
                   levels:
                       - base
+                  rules: []
                   status: manual
 
           - id: 7.2.6
@@ -1837,6 +1900,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 This requirement is specific about cardholder data, which can be available in different
                 formats, such as clear and binary files, and databases depending on site policies.
@@ -1856,6 +1920,7 @@ controls:
                 Access rights and privileges are managed via mechanisms intended for that purpose.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 7.3.2
@@ -1867,6 +1932,7 @@ controls:
                 only inherited from group membership.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 7.3.3
@@ -1876,6 +1942,7 @@ controls:
             levels:
                 - base
             status: planned
+            rules: []
             notes: |-
                 It is possible we can select some rules for this requirement but more investigation is
                 needed to confirm.
@@ -1894,6 +1961,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 Examine documentation and interview personnel to verify that security policies and
                 operational procedures identified in Requirement 8 are managed in accordance with all
@@ -1905,6 +1973,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 Examine documentation and interview personnel to verify that day-to-day responsibilities
                 for performing all the activities in Requirement 8 are documented, assigned and understood
@@ -1966,6 +2035,7 @@ controls:
                 factors for each customer premises.'
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 8.2.4
@@ -1973,6 +2043,7 @@ controls:
                 factors, and other identifier objects are managed
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 8.2.5
@@ -1982,6 +2053,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 This requirement depends on site policies for user termination.
 
@@ -2005,6 +2077,7 @@ controls:
                 system components via remote access are managed.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 8.2.8
@@ -2020,7 +2093,6 @@ controls:
                 - base
             status: automated
             rules:
-                - enable_dconf_user_profile
                 - dconf_db_up_to_date
                 - dconf_gnome_session_idle_user_locks
                 - dconf_gnome_screensaver_idle_activation_enabled
@@ -2054,7 +2126,6 @@ controls:
                 - disable_host_auth
                 - gnome_gdm_disable_automatic_login
                 - gnome_gdm_disable_guest_login
-                - gnome_gdm_disable_unattended_automatic_login
                 - no_empty_passwords
 
           - id: 8.3.2
@@ -2070,8 +2141,6 @@ controls:
                 There are similar rules that might be redundant for some distros.
             rules:
                 - accounts_password_all_shadowed
-                - ensure_shadow_group_empty
-                - set_password_hashing_algorithm_commonauth
                 - set_password_hashing_algorithm_libuserconf
                 - set_password_hashing_algorithm_logindefs
                 - set_password_hashing_algorithm_systemauth
@@ -2086,6 +2155,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 This requirement is about processes, such as password resets, provisioning new hardware or
                 software tokens, and generating new keys. It is common that these activities involve help
@@ -2108,12 +2178,8 @@ controls:
                 - var_accounts_passwords_pam_faillock_deny=10
                 - accounts_passwords_pam_faillock_unlock_time
                 - var_accounts_passwords_pam_faillock_unlock_time=1800
-                - accounts_passwords_pam_tally2
                 - var_password_pam_tally2=10
-                - accounts_passwords_pam_tally2_unlock_time
                 - var_accounts_passwords_pam_tally2_unlock_time=1800
-                - cracklib_accounts_password_pam_retry
-
           - id: 8.3.5
             title: If passwords/passphrases are used as authentication factors to
                 meet Requirement 8.3.1, they are set and reset for each user.
@@ -2153,9 +2219,6 @@ controls:
                 - accounts_password_pam_dcredit
                 - accounts_password_pam_lcredit
                 - accounts_password_pam_minlen
-                - cracklib_accounts_password_pam_dcredit
-                - cracklib_accounts_password_pam_lcredit
-                - cracklib_accounts_password_pam_minlen
             related_rules:
                 - var_password_pam_ocredit=1
                 - var_password_pam_ucredit=1
@@ -2195,6 +2258,7 @@ controls:
                 to all users.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 8.3.9
@@ -2242,6 +2306,7 @@ controls:
                   status: automated
                   notes: |-
                       This requirement is already covered by 8.3.9.
+                  rules: []
                   related_rules:
                       - accounts_maximum_age_login_defs
                       - var_accounts_maximum_age_login_defs=90
@@ -2252,6 +2317,7 @@ controls:
                 among multiple users and the usage is controlled.'
             levels:
                 - base
+            rules: []
             status: manual
 
     - id: '8.4'
@@ -2271,6 +2337,7 @@ controls:
             levels:
                 - base
             status: supported
+            rules: []
             related_rules:
                 - var_smartcard_drivers=cac
                 - configure_opensc_card_drivers
@@ -2285,6 +2352,7 @@ controls:
                 Access into the CDE cannot be obtained by the use of a single authentication factor.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 8.4.3
@@ -2292,6 +2360,7 @@ controls:
                 the entity's network that could access or impact the CDE.
             levels:
                 - base
+            rules: []
             status: manual
 
     - id: '8.5'
@@ -2312,6 +2381,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 Each site might have a different MFA solution and each solution has its own capabilities.
                 This requirement demands manual assessment based on site policies.
@@ -2355,6 +2425,7 @@ controls:
                 unauthorized personnel.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 8.6.3
@@ -2369,6 +2440,7 @@ controls:
             levels:
                 - base
             status: automated
+            rules: []
             notes: |-
                 Related to requirements 8.3.6 and 8.3.9.
 
@@ -2386,6 +2458,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 Examine documentation and interview personnel to verify that security policies and
                 operational procedures identified in Requirement 9 are managed in accordance with all
@@ -2397,6 +2470,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 Examine documentation and interview personnel to verify that day-to-day responsibilities
                 for performing all the activities in Requirement 9 are documented, assigned and understood
@@ -2424,6 +2498,7 @@ controls:
                       control mechanisms (or both).
                   levels:
                       - base
+                  rules: []
                   status: manual
 
           - id: 9.2.2
@@ -2434,6 +2509,7 @@ controls:
                 facility.
             levels:
                 - base
+            rules: []
             status: not applicable
 
           - id: 9.2.3
@@ -2443,6 +2519,7 @@ controls:
                 Physical networking equipment cannot be accessed by unauthorized personnel.
             levels:
                 - base
+            rules: []
             status: not applicable
 
           - id: 9.2.4
@@ -2453,6 +2530,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 Related to requirement 8.2.8.
                 This requirement asks to observe a system administrator's attempt to log into consoles in
@@ -2477,6 +2555,7 @@ controls:
                       is controlled
                   levels:
                       - base
+                  rules: []
                   status: manual
 
           - id: 9.3.2
@@ -2484,6 +2563,7 @@ controls:
                 access to the CDE.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 9.3.3
@@ -2493,6 +2573,7 @@ controls:
                 Visitor identification or badges cannot be reused after expiration.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 9.3.4
@@ -2500,6 +2581,7 @@ controls:
                 activity both within the facility and within sensitive areas.
             levels:
                 - base
+            rules: []
             status: manual
 
     - id: '9.4'
@@ -2524,6 +2606,7 @@ controls:
                       Offline backups cannot be accessed by unauthorized personnel.
                   levels:
                       - base
+                  rules: []
                   status: manual
 
                 - id: 9.4.1.2
@@ -2534,6 +2617,7 @@ controls:
                       inspection.
                   levels:
                       - base
+                  rules: []
                   status: manual
 
           - id: 9.4.2
@@ -2543,6 +2627,7 @@ controls:
                 Media are classified and protected appropriately.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 9.4.3
@@ -2555,6 +2640,7 @@ controls:
                 - Offsite tracking logs include details about media location.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 9.4.4
@@ -2567,6 +2653,7 @@ controls:
                 "manager" as part of their title.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 9.4.5
@@ -2585,6 +2672,7 @@ controls:
                       Media inventories are verified periodically.
                   levels:
                       - base
+                  rules: []
                   status: manual
 
           - id: 9.4.6
@@ -2592,6 +2680,7 @@ controls:
                 longer needed for business or legal reasons.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 9.4.7
@@ -2602,6 +2691,7 @@ controls:
                 - The cardholder data is rendered unrecoverable so that it cannot be reconstructed.
             levels:
                 - base
+            rules: []
             status: manual
 
     - id: '9.5'
@@ -2623,6 +2713,7 @@ controls:
                   title: An up-to-date list of POI devices is maintained.
                   levels:
                       - base
+                  rules: []
                   status: manual
 
                 - id: 9.5.1.2
@@ -2646,6 +2737,7 @@ controls:
                             required and must be fully considered during a PCI DSS assessment.
                         levels:
                             - base
+                        rules: []
                         status: manual
 
                 - id: 9.5.1.3
@@ -2653,6 +2745,7 @@ controls:
                       be aware of attempted tampering or replacement of POI devices.
                   levels:
                       - base
+                  rules: []
                   status: manual
 
     - id: '10.1'
@@ -2669,6 +2762,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 Examine documentation and interview personnel to verify that security policies and
                 operational procedures identified in Requirement 10 are managed in accordance with all
@@ -2680,6 +2774,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 Examine documentation and interview personnel to verify that day-to-day responsibilities
                 for performing all the activities in Requirement 10 are documented, assigned and
@@ -2725,6 +2820,7 @@ controls:
                       cardholder data. This kind of events can easily hit performance issues and are usually
                       not necessary if a good access policy is in place. More clarification is needed about
                       this requirement.
+                  rules: []
                   related_rules:
           # There are already many rules related to successful access, if we need to include them.
           # e.g.:
@@ -2818,6 +2914,7 @@ controls:
                   levels:
                       - base
                   status: planned
+                  rules: []
                   notes: |-
                       Ideally should exist rules specifically logging when audit configuration files are
                       modified and audit service state is changed.
@@ -2838,7 +2935,6 @@ controls:
                   rules:
                       - audit_rules_file_deletion_events_rename
                       - audit_rules_file_deletion_events_renameat
-                      - audit_rules_file_deletion_events_renameat2
                       - audit_rules_file_deletion_events_rmdir
                       - audit_rules_file_deletion_events_unlink
                       - audit_rules_file_deletion_events_unlinkat
@@ -2884,7 +2980,6 @@ controls:
             rules:
                 - directory_access_var_log_audit
                 - file_permissions_var_log_audit
-                - permissions_local_var_log
                 - rsyslog_files_permissions
 
           - id: 10.3.2
@@ -2918,7 +3013,6 @@ controls:
             rules:
                 - auditd_audispd_syslog_plugin_activated
                 - package_audispd-plugins_installed
-                - package_audit-audispd-plugins_installed
             related_rules:
                 - rsyslog_remote_loghost
                 - rsyslog_nolisten
@@ -2938,7 +3032,6 @@ controls:
                 - audit_rules_dac_modification_chown
                 - audit_rules_dac_modification_fchmod
                 - audit_rules_dac_modification_fchmodat
-                - audit_rules_dac_modification_fchmodat2
                 - audit_rules_dac_modification_fchown
                 - audit_rules_dac_modification_fchownat
                 - audit_rules_dac_modification_fremovexattr
@@ -2949,8 +3042,6 @@ controls:
                 - audit_rules_dac_modification_removexattr
                 - audit_rules_dac_modification_setxattr
                 - audit_rules_networkconfig_modification
-                - audit_rules_mac_modification_etc_selinux
-
     - id: '10.4'
       title: Audit logs are reviewed to identify anomalies or suspicious activity.
       levels:
@@ -2979,6 +3070,7 @@ controls:
                   levels:
                       - base
                   status: manual
+                  rules: []
                   notes: |-
                       Automation mechanisms, solutions and approaches vary for each organizarion.
 
@@ -3004,6 +3096,7 @@ controls:
                       it will be required and must be fully considered during a PCI DSS assessment.
                   levels:
                       - base
+                  rules: []
                   status: manual
 
           - id: 10.4.3
@@ -3013,6 +3106,7 @@ controls:
                 Suspicious or anomalous activities are addressed.
             levels:
                 - base
+            rules: []
             status: manual
 
     - id: '10.5'
@@ -3041,7 +3135,6 @@ controls:
                 - auditd_data_retention_space_left
                 - auditd_data_retention_space_left_action
                 - package_logrotate_installed
-                - timer_logrotate_enabled
             related_rules:
                 - var_auditd_action_mail_acct=root
                 - auditd_data_retention_action_mail_acct
@@ -3073,10 +3166,6 @@ controls:
             rules:
                 - package_chrony_installed
                 - service_chronyd_or_ntpd_enabled
-                - service_ntp_enabled
-                - service_ntpd_enabled
-                - service_timesyncd_enabled
-
           - id: 10.6.2
             title: Systems are configured to the correct and consistent time.
             description: |-
@@ -3100,8 +3189,6 @@ controls:
         # this control file.
                 - var_multiple_time_servers=generic
                 - chronyd_specify_remote_server
-                - ntpd_specify_remote_server
-                - ntpd_specify_multiple_servers
             related_rules:
                 - chronyd_configure_pool_and_server
                 - chronyd_or_ntpd_specify_multiple_servers
@@ -3148,6 +3235,7 @@ controls:
                 - Segmentation controls (if used).
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 10.7.2
@@ -3190,6 +3278,7 @@ controls:
                 - Resuming monitoring of security controls.
             levels:
                 - base
+            rules: []
             status: manual
 
     - id: '11.1'
@@ -3206,6 +3295,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 Examine documentation and interview personnel to verify that security policies and
                 operational procedures identified in Requirement 11 are managed in accordance with all
@@ -3217,6 +3307,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 Examine documentation and interview personnel to verify that day-to-day responsibilities
                 for performing all the activities in Requirement 11 are documented, assigned and
@@ -3233,6 +3324,7 @@ controls:
             title: Authorized and unauthorized wireless access points are managed.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 11.2.2
@@ -3243,6 +3335,7 @@ controls:
                 points.
             levels:
                 - base
+            rules: []
             status: manual
 
     - id: '11.3'
@@ -3265,6 +3358,7 @@ controls:
                       6.3.1) are managed.
                   levels:
                       - base
+                  rules: []
                   status: manual
 
                 - id: 11.3.1.2
@@ -3272,6 +3366,7 @@ controls:
                       scanning.
                   levels:
                       - base
+                  rules: []
                   status: manual
 
                 - id: 11.3.1.3
@@ -3279,6 +3374,7 @@ controls:
                       change.
                   levels:
                       - base
+                  rules: []
                   status: manual
 
           - id: 11.3.2
@@ -3292,6 +3388,7 @@ controls:
                       change.
                   levels:
                       - base
+                  rules: []
                   status: manual
 
     - id: '11.4'
@@ -3306,18 +3403,21 @@ controls:
                 by the entity.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 11.4.2
             title: Internal penetration testing is performed.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 11.4.3
             title: External penetration testing is performed.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 11.4.4
@@ -3325,6 +3425,7 @@ controls:
                 penetration testing are corrected
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 11.4.5
@@ -3332,6 +3433,7 @@ controls:
                 penetration tests are performed on segmentation controls.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 11.4.6
@@ -3340,6 +3442,7 @@ controls:
                 are performed on segmentation controls.'
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 11.4.7
@@ -3351,6 +3454,7 @@ controls:
                 by providing access or evidence that comparable technical testing has been undertaken.
             levels:
                 - base
+            rules: []
             status: manual
 
     - id: '11.5'
@@ -3384,6 +3488,7 @@ controls:
                   notes: |-
                       The policy is not explicit about any specific solution. The solution might vary
                       depending on site policies.
+                  rules: []
                   related_rules:
                       - install_hids
                       - package_MFEhiplsm_installed
@@ -3397,11 +3502,9 @@ controls:
       rules:
           - aide_build_database
           - aide_periodic_cron_checking
-          - aide_periodic_checking_systemd_timer
           - package_aide_installed
           - rpm_verify_hashes
           - rpm_verify_ownership
-          - rpm_verify_permissions
       related_rules:
           - disable_prelink
 
@@ -3416,6 +3519,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 It depends on controls in application level, which varies based on site policies.
 
@@ -3433,6 +3537,7 @@ controls:
                 to relevant vendors and business partners.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 12.1.2
@@ -3440,6 +3545,7 @@ controls:
                 once every 12 months.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 12.1.3
@@ -3450,6 +3556,7 @@ controls:
                 Personnel understand their role in protecting the entity's cardholder data.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 12.1.4
@@ -3460,6 +3567,7 @@ controls:
                 A designated member of executive management is responsible for information security.
             levels:
                 - base
+            rules: []
             status: manual
 
     - id: '12.2'
@@ -3473,6 +3581,7 @@ controls:
                 and implemented.
             levels:
                 - base
+            rules: []
             status: manual
 
     - id: '12.3'
@@ -3487,6 +3596,7 @@ controls:
                 risk analysis, the analysis is documented.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 12.3.2
@@ -3494,6 +3604,7 @@ controls:
                 that the entity meets with the customized approach
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 12.3.3
@@ -3502,6 +3613,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 Related to requirement 2.2.7.
 
@@ -3511,6 +3623,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 The technical requirement related to this is 6.3.3.
 
@@ -3526,6 +3639,7 @@ controls:
                 data and a PCI DSS compliance program.'
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 12.4.2
@@ -3545,6 +3659,7 @@ controls:
                       conducted in accordance with Requirement 12.4.2 are documented.'
                   levels:
                       - base
+                  rules: []
                   status: manual
 
     - id: '12.5'
@@ -3560,6 +3675,7 @@ controls:
                 All system components in scope for PCI DSS are identified and known.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 12.5.2
@@ -3583,6 +3699,7 @@ controls:
                       PCI DSS assessment.
                   levels:
                       - base
+                  rules: []
                   status: manual
 
           - id: 12.5.3
@@ -3597,6 +3714,7 @@ controls:
                 considered during a PCI DSS assessment.
             levels:
                 - base
+            rules: []
             status: manual
 
     - id: '12.6'
@@ -3615,6 +3733,7 @@ controls:
                 when required.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 12.6.2
@@ -3622,6 +3741,7 @@ controls:
                 once every 12 months.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 12.6.3
@@ -3636,6 +3756,7 @@ controls:
                       and vulnerabilities that could impact the security of the CDE.
                   levels:
                       - base
+                  rules: []
                   status: manual
 
                 - id: 12.6.3.2
@@ -3649,6 +3770,7 @@ controls:
                       must be fully considered during a PCI DSS assessment.
                   levels:
                       - base
+                  rules: []
                   status: manual
 
     - id: '12.7'
@@ -3668,6 +3790,7 @@ controls:
                 requirement is a recommendation only.
             levels:
                 - base
+            rules: []
             status: manual
 
     - id: '12.8'
@@ -3688,12 +3811,14 @@ controls:
                 responsibility for its own PCI DSS compliance.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 12.8.2
             title: Written agreements with TPSPs are maintained
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 12.8.3
@@ -3704,6 +3829,7 @@ controls:
                 data are assessed before the TPSP is engaged.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 12.8.4
@@ -3717,6 +3843,7 @@ controls:
                 PCI DSS requirements, then those requirements are also "not in place" for the entity.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 12.8.5
@@ -3728,6 +3855,7 @@ controls:
                 TPSP is solely or jointly responsible, are maintained and reviewed periodically.
             levels:
                 - base
+            rules: []
             status: manual
 
     - id: '12.9'
@@ -3752,6 +3880,7 @@ controls:
                 wording provided in this requirement.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 12.9.2
@@ -3760,6 +3889,7 @@ controls:
                 for information to meet Requirements 12.8.4 and 12.8.5.
             levels:
                 - base
+            rules: []
             status: manual
 
     - id: '12.10'
@@ -3774,6 +3904,7 @@ controls:
                 the event of a suspected or confirmed security incident.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 12.10.2
@@ -3781,6 +3912,7 @@ controls:
                 is reviewed, updated, and tested.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 12.10.3
@@ -3790,6 +3922,7 @@ controls:
                 Incidents are responded to immediately where appropriate.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 12.10.4
@@ -3814,6 +3947,7 @@ controls:
                       and must be fully considered during a PCI DSS assessment.
                   levels:
                       - base
+                  rules: []
                   status: manual
 
           - id: 12.10.5
@@ -3821,6 +3955,7 @@ controls:
                 to alerts from security monitoring systems.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 12.10.6
@@ -3831,6 +3966,7 @@ controls:
                 each invocation.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: 12.10.7
@@ -3838,6 +3974,7 @@ controls:
                 the detection of stored PAN anywhere it is not expected.
             levels:
                 - base
+            rules: []
             status: manual
 
     - id: A1.1
@@ -3854,6 +3991,7 @@ controls:
                 - Customers cannot access the provider's environment without authorization.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: A1.1.2
@@ -3863,6 +4001,7 @@ controls:
                 Customers cannot access other customers' environments.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: A1.1.3
@@ -3872,6 +4011,7 @@ controls:
                 Customers cannot impact resources allocated to other customers.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: A1.1.4
@@ -3886,6 +4026,7 @@ controls:
                 it will be required and must be fully considered during a PCI DSS assessment.
             levels:
                 - base
+            rules: []
             status: manual
 
     - id: A1.2
@@ -3900,6 +4041,7 @@ controls:
                 that is consistent with PCI DSS Requirement 10.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: A1.2.2
@@ -3911,6 +4053,7 @@ controls:
                 or confirmed security incident.
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: A1.2.3
@@ -3918,6 +4061,7 @@ controls:
                 suspected or confirmed security incidents and vulnerabilities.
             levels:
                 - base
+            rules: []
             status: manual
 
     - id: A2.1
@@ -3940,6 +4084,7 @@ controls:
             notes: |-
                 Related to requirements 2.2.7 and 3.5.1.1.
                 Service level settings for web servers such as Apache and NGINX should also be checked.
+            rules: []
             related_rules:
                 - configure_openssl_crypto_policy
                 - configure_openssl_tls_crypto_policy
@@ -3952,6 +4097,7 @@ controls:
                 and Migration Plan in place.'
             levels:
                 - base
+            rules: []
             status: manual
 
           - id: A2.1.3
@@ -3962,6 +4108,7 @@ controls:
                 only when the entity being assessed is a service provider.
             levels:
                 - base
+            rules: []
             status: manual
 
     - id: A3.1
@@ -3978,6 +4125,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 PCI DSS Reference: Requirement 12
 
@@ -3986,6 +4134,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 PCI DSS Reference: Requirements 1-12
 
@@ -3995,6 +4144,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 PCI DSS Reference: Requirement 12
 
@@ -4005,6 +4155,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 PCI DSS Reference: Requirement 12
 
@@ -4021,6 +4172,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 PCI DSS Reference: Scope of PCI DSS Requirements, Requirement 12.
 
@@ -4040,6 +4192,7 @@ controls:
                   levels:
                       - base
                   status: manual
+                  rules: []
                   notes: |-
                       PCI DSS Reference: Scope of PCI DSS Requirements; Requirements 1-12
 
@@ -4049,6 +4202,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 PCI DSS Reference: Requirement 12
 
@@ -4057,6 +4211,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 PCI DSS Reference: Requirement 11
 
@@ -4073,6 +4228,7 @@ controls:
                   levels:
                       - base
                   status: manual
+                  rules: []
                   notes: |-
                       PCI DSS Reference: Scope of PCI DSS Requirements.
 
@@ -4081,6 +4237,7 @@ controls:
                       the detection of cleartext PAN outside the CDE.
                   levels:
                       - base
+                  rules: []
                   status: manual
 
           - id: A3.2.6
@@ -4099,6 +4256,7 @@ controls:
                   levels:
                       - base
                   status: manual
+                  rules: []
                   notes: |-
                       PCI DSS Reference: Requirement 12
 
@@ -4123,6 +4281,7 @@ controls:
                   levels:
                       - base
                   status: manual
+                  rules: []
                   notes: |-
                       PCI DSS Reference: Requirements 1-12
                       If you noticed, this requirement should be A3.3.1.1 instead of A3.3.1.2 but it was kept
@@ -4135,6 +4294,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 PCI DSS Reference: Requirements 2, 6, 12.
 
@@ -4147,6 +4307,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 PCI DSS Reference: Requirements 1-12.
 
@@ -4164,6 +4325,7 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 PCI DSS Reference: Requirement 7.
 
@@ -4179,5 +4341,6 @@ controls:
             levels:
                 - base
             status: manual
+            rules: []
             notes: |-
                 PCI DSS Reference: Requirement 10, 12.
