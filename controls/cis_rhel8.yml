@@ -38,7 +38,7 @@ controls:
       title: Ensure cramfs kernel module is not available (Automated)
       levels:
           - l1_workstation
-          - l1_server
+          - l2_server
       status: automated
       rules: []
     - id: 1.1.1.2
@@ -98,8 +98,8 @@ controls:
     - id: 1.1.1.8
       title: Ensure usb-storage kernel module is not available (Automated)
       levels:
-          - l1_server
           - l2_workstation
+          - l2_server
       status: automated
       rules:
           - kernel_module_usb-storage_disabled
