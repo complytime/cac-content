@@ -1540,6 +1540,7 @@ controls:
       status: pending
       notes: |-
           New templated rule is necessary for "disableforwarding" option.
+      rules: []
       related_rules:
           - sshd_disable_tcp_forwarding
           - sshd_disable_x11_forwarding
