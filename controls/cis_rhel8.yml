@@ -1540,6 +1540,7 @@ controls:
       status: pending
       notes: |-
           New templated rule is necessary for "disableforwarding" option.
+      rules: []
       related_rules:
           - sshd_disable_tcp_forwarding
           - sshd_disable_x11_forwarding
@@ -2928,7 +2929,9 @@ controls:
           - l1_workstation
       status: partial
 #  TODO: add rules for unowned/ungrouped directories
-      rules: []
+      rules:
+          - file_permissions_ungroupowned
+          - no_files_unowned_by_user
     - id: 6.1.13
       title: Ensure SUID and SGID files are reviewed (Manual)
       levels:
