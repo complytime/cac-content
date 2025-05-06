@@ -1,0 +1,327 @@
+name: Sync CaC content to OSCAL
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+  # The final version should execute the test whenever a PR is merged to master.
+  #pull_request:
+  #  types:
+  #    - closed
+  #  branches:
+  #    - master
+
+jobs:
+  check-pr-message:
+    runs-on: ubuntu-latest
+    outputs:
+      run_job_check_update: ${{ steps.check_pr.outputs.run_job_check_update }}
+    steps:
+    - name: Check if the PR comes from the sync of OSCAL content
+      id: check_pr
+      run: |
+        PR_TITLE="${{ github.event.pull_request.title }}"
+        echo "PR Title: $PR_TITLE"
+        if [[ "$PR_TITLE" == *"Auto-generated PR from OSCAL content"* ]]; then
+          echo "The PR comes from OSCAL content. The task of Sync CaC content to OSCAL will exit."
+          echo "Skipping further checks."
+          exit 0
+        else
+          echo "::set-output name=run_job_check_update::true"
+        fi
+  
+  check-cac-content-update-and-sync-oscal-content:
+    runs-on: ubuntu-latest
+    needs: check-pr-message
+    if: ${{ needs.check-pr-message.outputs.run_job_check_update == 'true' }}
+    steps:
+      # Step 1: Set up Python 3
+      - name: Set up Python 3
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+      # Step 2: Install Git and Ruby
+      - name: Install Git and Ruby
+        run: sudo apt-get update && sudo apt-get install -y git ruby
+      # Step 3: Install Python dependencies
+      - name: Install dependencies
+        run: |
+          python3 -m pip install --upgrade pip setuptools
+          pip3 install gitpython PyYAML deepdiff Jinja2 xmldiff
+      # Step 4: Detect content changes in the PR
+      - name: Checkout (CTF)
+        uses: actions/checkout@v4
+        with:
+          repository: huiwangredhat/content-test-filtering # TODO: updated to ComplianceAsCode/content-test-filtering
+          ref: filter_controls_update
+          path: ctf
+      - name: Detect content changes in the PR
+        run: |
+          # TODO:update the the remote_repo to ComplianceAsCode/content
+          python ctf/content_test_filtering.py pr \
+            --base ${{ github.event.pull_request.base.ref }} \
+            --remote_repo ${{ github.server_url }}/${{ github.repository }} \
+            --verbose --profile --rule --control --output json ${{ github.event.pull_request.number }} > output.json
+      - name: Test if there are no content changes
+        run: echo "CTF_OUTPUT_SIZE=$(stat --printf="%s" output.json)" >> $GITHUB_OUTPUT
+        id: ctf
+      - name: Print changes to content detected if any
+        if: ${{ steps.ctf.outputs.CTF_OUTPUT_SIZE != '0' }}
+        run: cat output.json
+
+      # Step 5: Setup the trestle-bot CLI run envrionment
+      - name: Checkout CaC repo
+        if: ${{ steps.ctf.outputs.CTF_OUTPUT_SIZE != '0' }}
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          path: cac-content
+      # Get the access token for content write permission to OSCAL content
+      # 1. Generate the JWT token
+      # 2. Generate the installation ID(It's pre-generated)
+      # 3. Generate the installation access token
+      - name: Generate JWT Token
+        if: ${{ steps.ctf.outputs.CTF_OUTPUT_SIZE != '0' }}
+        id: generate-jwt
+        run: |
+          # Generate JWT using Ruby
+          JWT=$(ruby -r jwt -e '
+            payload = {
+              iat: Time.now.to_i,
+              exp: Time.now.to_i + (10 * 60), # Expires in 10 mins
+              iss: ENV["APP_ID"]
+            }
+            private_key = OpenSSL::PKey::RSA.new(ENV["PRIVATE_KEY"])
+            token = JWT.encode(payload, private_key, "RS256")
+            puts token
+          ')
+          echo "JWT_TOKEN=$JWT" >> $GITHUB_ENV
+          echo "::add-mask::$JWT" # Mask the token in logs
+        env:
+          APP_ID: ${{ secrets.APP_ID }}
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+      # Generate the GitHub app installation access token which expires in 1 hour
+      - name: Get Installation Access Token
+        if: ${{ steps.ctf.outputs.CTF_OUTPUT_SIZE != '0' }}
+        id: get-installation-token
+        run: |
+          INSTALLATION_TOKEN=$(curl -s -X POST \
+            -H "Authorization: Bearer ${{ env.JWT_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/app/installations/${{ secrets.INSTALLATION_ID }}/access_tokens \
+            | jq -r '.token')
+          echo "INSTALLATION_TOKEN=$INSTALLATION_TOKEN" >> $GITHUB_ENV
+          echo "::add-mask::$INSTALLATION_TOKEN" # Mask the token in logs
+      - name: Checkout OSCAL content repo
+        if: ${{ steps.ctf.outputs.CTF_OUTPUT_SIZE != '0' }}
+        uses: actions/checkout@v4
+        with:
+          repository: complytime/oscal-content
+          path: oscal-content
+          token: ${{ env.INSTALLATION_TOKEN }}
+          fetch-depth: 0
+      - name: Checkout trestle-bot repo
+        if: ${{ steps.ctf.outputs.CTF_OUTPUT_SIZE != '0' }}
+        uses: actions/checkout@v4
+        with:
+          repository: complytime/trestle-bot
+          path: trestle-bot
+      - name: Setup trestlebot
+        if: ${{ steps.ctf.outputs.CTF_OUTPUT_SIZE != '0' }}
+        run: |
+          cd trestle-bot && python3 -m venv venv && source venv/bin/activate
+          python3 -m pip install --no-cache-dir "poetry==1.7.1"
+          poetry install
+      # Step 6: Get profiles, controls and level mapping
+      - name: Get profiles, controls and level mapping
+        if: ${{ steps.ctf.outputs.CTF_OUTPUT_SIZE != '0' }}
+        run: |
+          cd trestle-bot && source venv/bin/activate
+          RHEL_PRODUCTS=(rhel8 rhel9 rhel10)
+          for product in "${RHEL_PRODUCTS[@]}"; do
+            echo "The map for $product..."
+            map_file=$product"_map.json"
+            python scripts/get_mappings_profile_control_levels.py $product "$GITHUB_WORKSPACE/cac-content" > $map_file  2>&1
+            cat $map_file
+          done
+      # Step 7: Get product available controls
+      - name: Get product controls
+        if: ${{ steps.ctf.outputs.CTF_OUTPUT_SIZE != '0' }}
+        run: |
+          cd trestle-bot && source venv/bin/activate
+          # RHEL_PRODUCTS=(rhel8 rhel9 rhel10 ocp4 rhv4 rhcos4)
+          RHEL_PRODUCTS=(rhel8 rhel9 rhel10)
+          for product in "${RHEL_PRODUCTS[@]}"; do
+            echo "All available controls of $product..."
+            controls_file=$product"_controls"
+            python scripts/get_product_controls.py $product "$GITHUB_WORKSPACE/cac-content" > $controls_file  2>&1
+            cat $controls_file
+          done
+      # Step 8: Check if the OSCAL content branch exists
+      - name: Check if the OSCAL content branch exists
+        if: ${{ steps.ctf.outputs.CTF_OUTPUT_SIZE != '0' }}
+        run: |
+          pr_number="${{ github.event.pull_request.number }}"
+          BRANCH_NAME="sync_cac_pr$pr_number"
+          cd oscal-content
+          branches=$(git branch -r | grep 'origin/sync_cac' | sed 's/origin\///')
+          echo $branches
+          exist="false"
+          for branch in $branches; do
+            echo $branch
+            if [[ "$branch" == "$BRANCH_NAME" ]]; then
+              echo "OSCAL content branch $BRANCH_NAME exists"
+              git fetch --all
+              git checkout -b sync_cac_pr$pr_number origin/sync_cac_pr$pr_number
+              exist="true"
+              break
+            fi
+          done
+          if [[ "$exist" == "false" ]]; then
+            echo "OSCAL content branch $BRANCH_NAME doesn't exist"
+          fi
+      # Step 9: Sync CAC content updates to OSCAL content
+      - name: Sync CAC content updates to OSCAL content
+        if: ${{ steps.ctf.outputs.CTF_OUTPUT_SIZE != '0' }}
+        run: |
+          # Setup the OSCAL content branch name for incremental updates
+          pr_number="${{ github.event.pull_request.number }}"
+          cd trestle-bot && source venv/bin/activate
+          RHEL_PRODUCTS=(rhel8 rhel9 rhel10)
+          while IFS= read -r line; do # Sync the controls updates firstly
+            if [[ "$line" == *controls* ]]; then # Sync the controls updates
+              # Sync updated CAC controls to OSCAL catalogs, profiles and component-definition
+              CONTROLS=$(echo "$line" | jq -r '.controls[]')
+              for updated_control in $CONTROLS; do
+                if [[ "$updated_control" == *"SRG-APP"* ]] || [[ "$updated_control" == *"SRG-OS"* ]]; then
+                    echo "Ignoring SRG-APP and SRG-OS"
+                    continue
+                fi
+                if [[ "$updated_control" == *"section"* ]]; then
+                    echo "Section found, setting policy_id to 'cis_ocp_1_4_0'"
+                    policy_id="cis_ocp_1_4_0"
+                  else
+                    policy_id=$(echo "$updated_control" | cut -f1 -d".")
+                fi
+                echo "Sync catalogs according to the updated control: $policy_id........" 
+                echo "poetry run trestlebot sync-cac-content catalog  --repo-path ../oscal-content --committer-email test@redhat.com --committer-name test --branch sync_cac_pr$pr_number --cac-content-root $GITHUB_WORKSPACE/cac-content --cac-policy-id $policy_id --oscal-catalog $policy_id"
+                poetry run trestlebot sync-cac-content catalog  --repo-path ../oscal-content --committer-email test@redhat.com --committer-name test --branch sync_cac_pr$pr_number --cac-content-root $GITHUB_WORKSPACE/cac-content --cac-policy-id $policy_id --oscal-catalog $policy_id
+                
+                # Check if the updated control impact the product
+                # If the product is impacted, then sync the updates
+                for product in "${RHEL_PRODUCTS[@]}"; do
+                  controls_s=$(cat $product"_controls") # Get all the available controls of the product
+                  IFS=' ' read -r -a controls_a <<< "$controls_s"
+                  for pc in "${controls_a[@]}"; do
+                    if [[ "$pc" == "$policy_id" ]]; then
+                      echo "Sync product $product oscal profiles according to the updated control: $policy_id........"
+                      echo "poetry run trestlebot sync-cac-content profile  --repo-path ../oscal-content --committer-email test@redhat.com --committer-name test --branch sync_cac_pr$pr_number --cac-content-root $GITHUB_WORKSPACE/cac-content --product $product --cac-policy-id $policy_id --oscal-catalog $policy_id"
+                      poetry run trestlebot sync-cac-content profile  --repo-path ../oscal-content --committer-email test@redhat.com --committer-name test --branch sync_cac_pr$pr_number --cac-content-root $GITHUB_WORKSPACE/cac-content --product $product --cac-policy-id $policy_id --oscal-catalog $policy_id
+                    fi
+                  done
+                  # Map which CAC profile and OSCAL profile the component-definition will use
+                  while IFS= read -r line; do
+                    map=$(echo "$line" | sed "s/'/\"/g")
+                    map_policy_id=$(echo "$map" | jq -r '.policy_id')
+                    if [[ "$map_policy_id" == "$policy_id" ]]; then
+                      echo "Sync product $product component-definition according to the updated control: $policy_id........"
+                      profile=$(echo "$map" | jq -r '.profile_name') # Map the profile
+                      levels=$(echo "$map" | jq -r '.levels[]')
+                      # Map the CAC profile and the OSCAL profile withe different level
+                      for level in "${levels[@]}"; do
+                        oscal_profile=$product"-"$policy_id"-"$level
+                        if [[ "$product" == *'rhel'* ]] ; then
+                          type="software"
+                        else
+                          type="service"
+                        fi
+                        echo "poetry run trestlebot sync-cac-content component-definition --repo-path ../oscal-content --committer-email test@redhat.com --committer-name test --branch sync_cac_pr$pr_number --cac-content-root $GITHUB_WORKSPACE/cac-content --product $product  --component-definition-type $type --cac-profile $profile  --oscal-profile $oscal_profile"
+                        sed -i '/href/s|\(trestle://\)[^ ]*\(catalogs\)|\1\2|g' ../oscal-content/profiles/$oscal_profile/profile.json
+                        poetry run trestlebot sync-cac-content component-definition --repo-path ../oscal-content --committer-email test@redhat.com --committer-name test --branch sync_cac_pr$pr_number --cac-content-root $GITHUB_WORKSPACE/cac-content --product $product  --component-definition-type $type --cac-profile $profile  --oscal-profile $oscal_profile
+                        type="validation"
+                        echo "poetry run trestlebot sync-cac-content component-definition --repo-path ../oscal-content --committer-email test@redhat.com --committer-name test --branch sync_cac_pr$pr_number --cac-content-root $GITHUB_WORKSPACE/cac-content --product $product  --component-definition-type $type --cac-profile $profile  --oscal-profile $oscal_profile"
+                        poetry run trestlebot sync-cac-content component-definition --repo-path ../oscal-content --committer-email test@redhat.com --committer-name test --branch sync_cac_pr$pr_number --cac-content-root $GITHUB_WORKSPACE/cac-content --product $product  --component-definition-type $type --cac-profile $profile  --oscal-profile $oscal_profile
+                      done
+                    fi
+                  done < $product"_map.json"
+                done
+              done
+            fi
+          done < ../output.json
+          while IFS= read -r line; do # Then sync the profiles updates
+            if [[ "$line" == *profiles* ]]; then
+              # Sync CAC profile updates to OSCAL profile and component-definition
+              PROFILES=$(echo "$line" | jq -r '.profiles[]')
+              PRODUCT=$(echo "$line" | jq -r '.product')
+              for product in "${RHEL_PRODUCTS[@]}"; do
+                if [[ "$PRODUCT" == "$product" ]]; then
+                  for updated_profile in $PROFILES; do
+                    if [[ "$updated_profile" == *"default"* ]] ; then
+                        echo "Ignoring the default profile update"
+                        continue
+                    fi
+                    while IFS= read -r line; do
+                      map=$(echo "$line" | sed "s/'/\"/g")
+                      profile=$(echo "$map" | jq -r '.profile_name')
+                      # Get the policy id and level from the map according to the updated profile
+                      if [[ "$updated_profile" == "$profile" ]]; then
+                        policy_id=$(echo "$map" | jq -r '.policy_id')
+                        echo "Sync product $product profiles according to the updated profile: $profile........"
+                        echo "poetry run trestlebot sync-cac-content profile  --repo-path ../oscal-content --committer-email test@redhat.com --committer-name test --branch sync_cac_pr$pr_number --cac-content-root $GITHUB_WORKSPACE/cac-content --product $product --cac-policy-id $policy_id --oscal-catalog $policy_id"
+                        poetry run trestlebot sync-cac-content profile  --repo-path ../oscal-content --committer-email test@redhat.com --committer-name test --branch sync_cac_pr$pr_number --cac-content-root $GITHUB_WORKSPACE/cac-content --product $product --cac-policy-id $policy_id --oscal-catalog $policy_id
+                        levels=$(echo "$map" | jq -r '.levels[]')
+                        for level in "${levels[@]}"; do
+                          if [[ "$product" == *'rhel'* ]] ; then
+                            type="software"
+                          else
+                            type="service"
+                          fi
+                          oscal_profile=$product"-"$policy_id"-"$level
+                          echo "Sync product $product component-definition according to the updated profile: $updated_profile........"
+                          echo "poetry run trestlebot sync-cac-content component-definition --repo-path ../oscal-content --committer-email test@redhat.com --committer-name test --branch sync_cac_pr$pr_number --cac-content-root $GITHUB_WORKSPACE/cac-content --product $product  --component-definition-type $type --cac-profile $profile  --oscal-profile $oscal_profile"
+                          sed -i '/href/s|\(trestle://\)[^ ]*\(catalogs\)|\1\2|g' ../oscal-content/profiles/$oscal_profile/profile.json
+                          poetry run trestlebot sync-cac-content component-definition --repo-path ../oscal-content --committer-email test@redhat.com --committer-name test --branch sync_cac_pr$pr_number --cac-content-root $GITHUB_WORKSPACE/cac-content --product $product  --component-definition-type $type --cac-profile $profile  --oscal-profile $oscal_profile
+                          type="validation"
+                          echo "poetry run trestlebot sync-cac-content component-definition --repo-path ../oscal-content --committer-email test@redhat.com --committer-name test --branch sync_cac_pr$pr_number --cac-content-root $GITHUB_WORKSPACE/cac-content --product $product  --component-definition-type $type --cac-profile $profile  --oscal-profile $oscal_profile"
+                          poetry run trestlebot sync-cac-content component-definition --repo-path ../oscal-content --committer-email test@redhat.com --committer-name test --branch sync_cac_pr$pr_number --cac-content-root $GITHUB_WORKSPACE/cac-content --product $product  --component-definition-type $type --cac-profile $profile  --oscal-profile $oscal_profile
+                        done
+                      fi
+                    done < $product"_map.json"
+                  done
+                fi
+              done
+            fi
+          done < ../output.json
+          while IFS= read -r line; do # Last sync the rules and variables updates
+            if [[ "$line" == *rules* ]]; then
+              #TODO: as talked with Marcus, sync rules will updated later
+              RULES=$(echo "$line" | jq -r '.rules[]')
+              PRODUCT=$(echo "$line" | jq -r '.product')
+              echo "Skip the rules sync that only need to update the rule title"
+            fi
+          done < ../output.json
+      # Step 10: Create PR to OSCAL content
+      - name: Create a Pull Request to OSCAL content
+        if: ${{ steps.ctf.outputs.CTF_OUTPUT_SIZE != '0' }}
+        run: |
+          cd oscal-content
+          pr_number="${{ github.event.pull_request.number }}"
+          BRANCH_NAME="sync_cac_pr$pr_number"
+          OWNER="complytime"
+          REPO="oscal-content"
+          # Check if the PR exists
+          PR_EXISTS=$(gh pr list --repo $OWNER/$REPO \
+            --head $BRANCH_NAME --state open --json id \
+            | jq length)
+          # If the PR doesn't exist, create PR
+          if [ "$PR_EXISTS" -gt 0 ]; then
+            echo "PR $BRANCH_NAME already exists. Skipping PR creation."
+          else
+            echo "Creating PR for new branch: $BRANCH_NAME"
+            gh pr create --repo $OWNER/$REPO \
+              --title "Auto-generated PR from CAC $pr_number" \
+              --head "$BRANCH_NAME" \
+              --base "main" \
+              --body "This is an auto-generated PR from CAC $pr_number updates"
+          fi
+        env:
+          GH_TOKEN: ${{ env.INSTALLATION_TOKEN }}

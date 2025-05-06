@@ -420,7 +420,7 @@ controls:
     status: automated
     rules:
       - var_selinux_policy_name=targeted
-      - selinux_policytype
+    # - selinux_policytype
 
   - id: 1.3.1.4
     title: Ensure the SELinux mode is not disabled (Automated)
