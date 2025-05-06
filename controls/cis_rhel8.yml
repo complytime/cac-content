@@ -101,7 +101,8 @@ controls:
           - l1_server
           - l2_workstation
       status: automated
-      rules: []
+      rules:
+          - kernel_module_usb-storage_disabled
     - id: 1.1.2.1.1
       title: Ensure /tmp is a separate partition (Automated)
       levels:
@@ -654,14 +655,16 @@ controls:
           - l1_server
           - l2_workstation
       status: automated
-      rules: []
+      rules:
+          - service_autofs_disabled
     - id: 2.2.2
       title: Ensure avahi daemon services are not in use (Automated)
       levels:
           - l1_server
           - l2_workstation
       status: automated
-      rules: []
+      rules:
+          - service_avahi-daemon_disabled
       related_rules:
           - package_avahi_removed
 
@@ -928,7 +931,8 @@ controls:
           - l1_server
           - l2_workstation
       status: automated
-      rules: []
+      rules:
+          - service_bluetooth_disabled
     - id: 3.2.1
       title: Ensure dccp kernel module is not available (Automated)
       levels:
