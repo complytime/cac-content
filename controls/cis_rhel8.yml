@@ -36,7 +36,6 @@ controls:
     status: automated
     rules:
       - var_authselect_profile=sssd
-      - enable_authselect
 
   - id: 1.1.1.1
     title: Ensure cramfs kernel module is not available (Automated)
