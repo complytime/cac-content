@@ -323,8 +323,7 @@ jobs:
               --title "Auto-generated PR from CAC $pr_number" \
               --head "$BRANCH_NAME" \
               --base "main" \
-              --body "This is an auto-generated PR from CAC $pr_number updates")
+              --body "This is an auto-generated PR from CAC $pr_number updates"
           fi
         env:
           GH_TOKEN: ${{ env.INSTALLATION_TOKEN }}
-
