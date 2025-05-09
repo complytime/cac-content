@@ -350,6 +350,7 @@ controls:
           - l1_server
           - l1_workstation
       status: manual
+      rules: []
       related_rules:
           - ensure_redhat_gpgkey_installed
 
@@ -375,6 +376,7 @@ controls:
       levels:
           - l1_server
           - l1_workstation
+      rules: []
       status: manual
 
     - id: 1.2.5
@@ -384,6 +386,7 @@ controls:
           - l1_server
           - l1_workstation
       status: manual
+      rules: []
       related_rules:
           - security_patches_up_to_date
 
@@ -545,6 +548,7 @@ controls:
       status: automated
       notes: |-
           This requirement is already satisfied by 1.6.1.
+      rules: []
       related_rules:
           - configure_crypto_policy
 
@@ -557,6 +561,7 @@ controls:
       notes: |-
           It is necessary a new rule to ensure a module disabling CBC in
           /etc/crypto-policies/policies/modules/ so it can be used by update-crypto-policies command.
+      rules: []
       related_rules:
           - configure_crypto_policy
 
@@ -569,6 +574,7 @@ controls:
       notes: |-
           It is necessary a new rule to ensure a module disabling weak MACs in
           /etc/crypto-policies/policies/modules/ so it can be used by update-crypto-policies command.
+      rules: []
       related_rules:
           - configure_crypto_policy
 
@@ -705,6 +711,7 @@ controls:
       notes: |-
           The same rules used in 1.8.6 are applicable here since they configure and also lock the
           settings.
+      rules: []
       related_rules:
           - dconf_gnome_disable_automount
           - dconf_gnome_disable_automount_open
@@ -727,6 +734,7 @@ controls:
       notes: |-
           The same rules used in 1.8.8 are applicable here since they configure and also lock the
           settings.
+      rules: []
       related_rules:
           - dconf_gnome_disable_autorun
 
@@ -815,9 +823,7 @@ controls:
           - l1_server
           - l1_workstation
       status: automated
-      rules:
-          - package_dnsmasq_removed
-
+      rules: []
     - id: 2.2.6
       title: Ensure samba file server services are not in use (Automated)
       levels:
@@ -1013,6 +1019,7 @@ controls:
       levels:
           - l1_server
           - l1_workstation
+      rules: []
       status: manual
 
     - id: 2.3.1
@@ -1065,6 +1072,7 @@ controls:
       levels:
           - l1_server
           - l1_workstation
+      rules: []
       status: manual
 
     - id: 3.1.2
@@ -1281,6 +1289,7 @@ controls:
           RHEL systems use firewalld for firewall management. Although nftables is the default
           back-end for firewalld, it is not recommended to use nftables directly when firewalld
           is in use. When using firewalld the base chains are installed by default.
+      rules: []
       related_rules:
           - set_nftables_base_chain
           - var_nftables_table=firewalld
@@ -1306,6 +1315,7 @@ controls:
       levels:
           - l1_server
           - l1_workstation
+      rules: []
       status: manual
 
     - id: 3.4.2.4
@@ -1318,6 +1328,7 @@ controls:
           RHEL systems use firewalld for firewall management. Although nftables is the default
           back-end for firewalld, it is not recommended to use nftables directly when firewalld
           is in use. When using firewalld the base chains are installed by default.
+      rules: []
       related_rules:
           - set_nftables_new_connections
 
@@ -1331,6 +1342,7 @@ controls:
           RHEL systems use firewalld for firewall management. Although nftables is the default
           back-end for firewalld, it is not recommended to use nftables directly when firewalld
           is in use.
+      rules: []
       related_rules:
           - nftables_ensure_default_deny_policy
 
@@ -1434,7 +1446,6 @@ controls:
       rules:
           - file_at_deny_not_exist
           - file_groupowner_at_allow
-          - file_owner_at_allow
           - file_permissions_at_allow
 
     - id: 4.2.1
@@ -1754,6 +1765,7 @@ controls:
           - l1_server
           - l1_workstation
       status: pending
+      rules: []
       notes: |-
           It is necessary a new rule to ensure PAM package is updated.
 
@@ -1763,6 +1775,7 @@ controls:
           - l1_server
           - l1_workstation
       status: pending
+      rules: []
       notes: |-
           It is necessary a new rule to ensure PAM package is updated.
 
@@ -1778,6 +1791,7 @@ controls:
           settings might be different depending on site policies. The other rules will already make
           sure there is a correct autheselect profile regardless of the existing settings. It is
           necessary to better discuss with CIS Community.
+      rules: []
       related_rules:
           - no_empty_passwords
 
@@ -1816,6 +1830,7 @@ controls:
       notes: |-
           The module is properly enabled by the rules mentioned in related_rules.
           Requirements in 4.4.3.3 use these rules.
+      rules: []
       related_rules:
           - accounts_password_pam_pwhistory_remember_password_auth
           - accounts_password_pam_pwhistory_remember_system_auth
@@ -1830,6 +1845,7 @@ controls:
           This module is always present by default. It is necessary to investigate if a new rule to
           check its existence needs to be created. But so far the rule no_empty_passwords, used in
           4.4.3.4.1 can ensure this requirement is attended.
+      rules: []
       related_rules:
           - no_empty_passwords
 
@@ -1923,6 +1939,7 @@ controls:
           - l1_server
           - l1_workstation
       status: planned
+      rules: []
       notes: |-
           A new templated rule and variable are necessary for the maxsequence option.
 
@@ -1969,6 +1986,7 @@ controls:
           - l1_server
           - l1_workstation
       status: planned
+      rules: []
       notes: |-
           A new rule needs to be created to check and remediate the enforce_for_root option in
           /etc/security/pwhistory.conf. accounts_password_pam_enforce_root can be used as reference.
@@ -1983,6 +2001,7 @@ controls:
           In RHEL 8 pam_pwhistory is enabled via authselect feature, as required in 4.4.3.3.1. The
           feature automatically set "use_authok" option. In any case, we don't have a rule to check
           this option specifically.
+      rules: []
       related_rules:
           - accounts_password_pam_pwhistory_remember_password_auth
           - accounts_password_pam_pwhistory_remember_system_auth
@@ -2005,6 +2024,7 @@ controls:
           - l1_server
           - l1_workstation
       status: pending
+      rules: []
       notes: |-
           Usage of pam_unix.so module together with "remember" option is deprecated and is not
           recommened by this policy. Instead, it should be used remember option of pam_pwhistory
@@ -2031,6 +2051,7 @@ controls:
           - l1_server
           - l1_workstation
       status: partial
+      rules: []
       notes: |-
           In RHEL 8 pam_unix is enabled by default in all authselect profiles already with the
           use_authtok option set. In any case, we don't have a rule to check this option specifically,
@@ -2105,6 +2126,7 @@ controls:
           - l1_server
           - l1_workstation
       status: pending
+      rules: []
       notes: |-
           There is no rule to ensure umask in /root/.bash_profile and /root/.bashrc. A new rule have
           to be created. It can be based on accounts_umask_interactive_users.
@@ -2215,6 +2237,7 @@ controls:
       levels:
           - l1_server
           - l1_workstation
+      rules: []
       status: manual
 
     - id: 5.1.1.6
@@ -2223,6 +2246,7 @@ controls:
           - l1_server
           - l1_workstation
       status: manual
+      rules: []
       related_rules:
           - rsyslog_remote_loghost
 
@@ -2242,6 +2266,7 @@ controls:
           - l1_server
           - l1_workstation
       status: manual
+      rules: []
       related_rules:
           - package_systemd-journal-remote_installed
 
@@ -2250,6 +2275,7 @@ controls:
       levels:
           - l1_server
           - l1_workstation
+      rules: []
       status: manual
 
     - id: 5.1.2.1.3
@@ -2257,6 +2283,7 @@ controls:
       levels:
           - l1_server
           - l1_workstation
+      rules: []
       status: manual
 
     - id: 5.1.2.1.4
@@ -2301,6 +2328,7 @@ controls:
       levels:
           - l1_server
           - l1_workstation
+      rules: []
       status: manual
 
     - id: 5.1.2.6
@@ -2308,6 +2336,7 @@ controls:
       levels:
           - l1_server
           - l1_workstation
+      rules: []
       status: manual
 
     - id: 5.1.3
@@ -2316,6 +2345,7 @@ controls:
           - l1_server
           - l1_workstation
       status: manual
+      rules: []
       related_rules:
           - ensure_logrotate_activated
           - package_logrotate_installed
@@ -2908,6 +2938,7 @@ controls:
           - l1_server
           - l1_workstation
       status: manual
+      rules: []
       related_rules:
           - file_permissions_unauthorized_suid
           - file_permissions_unauthorized_sgid
