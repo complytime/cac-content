@@ -3,6 +3,7 @@ documentation_complete: true
 metadata:
     SMEs:
         - marcusburghardt
+        - test
 
 reference: https://www.cisecurity.org/benchmark/red_hat_linux/
 

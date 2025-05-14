@@ -22,7 +22,7 @@ controls:
         - base
       status: manual
       notes: |-
-        Examine documentation and interview personnel to verify that security policies and
+        Test Examine documentation and interview personnel to verify that security policies and
         operational procedures identified in Requirement 1 are managed in accordance with all
         elements specified in this requirement.
 
