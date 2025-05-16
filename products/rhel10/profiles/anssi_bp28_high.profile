@@ -24,7 +24,7 @@ selections:
     - anssi:all:high
     - var_password_hashing_algorithm_pam=yescrypt
     # the following rule renders UEFI systems unbootable
-    - '!sebool_secure_mode_insmod'
+    #- '!sebool_secure_mode_insmod'
     # Following rules are incompatible with rhel10 product
     - '!enable_authselect'
     # tally2 is deprecated, replaced by faillock
