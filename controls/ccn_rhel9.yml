@@ -54,7 +54,7 @@ controls:
       - audit_rules_session_events_btmp
       - audit_rules_session_events_wtmp
       - audit_rules_login_events_faillock
-      - audit_rules_login_events_lastlog
+      #- audit_rules_login_events_lastlog
 
   - id: A.3.SEC-RHEL2
     title: Control Who Can Access Security and Audit Logs
