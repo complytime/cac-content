@@ -4,7 +4,7 @@ metadata:
     version: 2.0.0
     SMEs:
         - marcusburghardt
-        - mab879
+        #- mab879
         - vojtapolasek
 
 reference: https://www.cisecurity.org/benchmark/red_hat_linux/
