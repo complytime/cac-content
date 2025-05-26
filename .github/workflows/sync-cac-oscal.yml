@@ -16,7 +16,7 @@ jobs:
       run_job_check_update: ${{ steps.check_pr.outputs.run_job_check_update }}
     steps:
     - name: Check if the PR comes from the sync of OSCAL content
-      id: check_pr
+      id: check-pr
       run: |
         PR_TITLE="${{ github.event.pull_request.title }}"
         echo "PR Title: $PR_TITLE"
@@ -82,19 +82,15 @@ jobs:
           echo "INSTALLATION_TOKEN=$INSTALLATION_TOKEN" >> $GITHUB_ENV
           echo "::add-mask::$INSTALLATION_TOKEN" # Mask the token in logs
       # Step 5: Detect the updates of CAC content
-      - name: Detect the changed files of the PR
+      - name: Detect files changed by PR
         id: changed-files
         run: |
-          changes=("controls/" ".profile" "rule.ym" ".var")
           response=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files?per_page=50)
           echo "$response" | jq -r '.[].filename' > filenames.txt
           echo "CHANGE_FOUND=false" >> $GITHUB_ENV
-          for change in "${changes[@]}"; do
-            if grep -q "$change" filenames.txt ; then
-              echo "CHANGE_FOUND=true" >> $GITHUB_ENV
-              break
-            fi
-          done
+          if grep -E "controls/|.profile|rule.yml|.var" filenames.txt ; then
+            echo "CHANGE_FOUND=true" >> $GITHUB_ENV
+          fi
           cat filenames.txt
         env:
           GH_TOKEN: ${{ env.INSTALLATION_TOKEN }}
@@ -119,13 +115,17 @@ jobs:
           cd trestle-bot && python3 -m venv venv && source venv/bin/activate
           python3 -m pip install --no-cache-dir "poetry==1.7.1"
           poetry install
+      - name: Set RH_PRODUCTS
+        if: ${{ env.CHANGE_FOUND == 'true' }}
+        run: |
+          echo "RH_PRODUCTS=(rhel8 rhel9 rhel10 ocp4)" >> $GITHUB_ENV
       # Step 7: Get profiles, controls and level mapping
       - name: Get profiles, controls and level mapping
         if: ${{ env.CHANGE_FOUND == 'true' }}
         run: |
           cd trestle-bot && source venv/bin/activate
-          RHEL_PRODUCTS=(rhel8 rhel9 rhel10)
-          for product in "${RHEL_PRODUCTS[@]}"; do
+          RH_PRODUCTS=${{ env.RH_PRODUCTS }}
+          for product in "${RH_PRODUCTS[@]}"; do
             echo "The map for $product..."
             map_file=$product"_map.json"
             python scripts/get_mappings_profile_control_levels.py $product "$GITHUB_WORKSPACE/cac-content" > $map_file  2>&1
@@ -136,9 +136,8 @@ jobs:
         if: ${{ env.CHANGE_FOUND == 'true' }}
         run: |
           cd trestle-bot && source venv/bin/activate
-          # RHEL_PRODUCTS=(rhel8 rhel9 rhel10 ocp4 rhv4 rhcos4)
-          RHEL_PRODUCTS=(rhel8 rhel9 rhel10)
-          for product in "${RHEL_PRODUCTS[@]}"; do
+          RH_PRODUCTS=${{ env.RH_PRODUCTS }}
+          for product in "${RH_PRODUCTS[@]}"; do
             echo "All available controls of $product..."
             controls_file=$product"_controls"
             python scripts/get_product_controls.py $product "$GITHUB_WORKSPACE/cac-content" > $controls_file  2>&1
@@ -153,7 +152,7 @@ jobs:
         run: |
           cat filenames.txt
           cd trestle-bot && source venv/bin/activate
-          RHEL_PRODUCTS=(rhel8 rhel9 rhel10)
+          RH_PRODUCTS=${{ env.RH_PRODUCTS }}
           while IFS= read -r line; do
             # 1. Get the updated controls
             if [[ "$line" == *controls/* ]]; then
@@ -174,7 +173,7 @@ jobs:
               echo "Detect update for profile $line ......"
               profile_name=$(echo $line | rev | cut -f1 -d"/" | rev | cut -f1 -d".")
               p_product=$(echo $line | cut -f2 -d"/")
-              for product in "${RHEL_PRODUCTS[@]}"; do
+              for product in "${RH_PRODUCTS[@]}"; do
                 if [[ "$p_product" == "$product" ]]; then
                   echo $profile_name >> $product"_updated_profiles"
                 fi
@@ -190,7 +189,7 @@ jobs:
                 echo "Detect update for rule $line ......"
                 value=$(echo "$line" | rev | cut -f2 -d"/" | rev)
               fi
-              for product in "${RHEL_PRODUCTS[@]}"; do
+              for product in "${RH_PRODUCTS[@]}"; do
                 python scripts/get_rule_impacted_files.py $product "$GITHUB_WORKSPACE/cac-content" $value control >> rule_impacted_controls 2>&1
                 python scripts/get_rule_impacted_files.py $product "$GITHUB_WORKSPACE/cac-content" $value profile >> $product"_rule_impacted_profiles" 2>&1
               done
@@ -223,7 +222,7 @@ jobs:
         if: ${{ env.CHANGE_FOUND == 'true' }}
         run: |
           cd trestle-bot && source venv/bin/activate
-          RHEL_PRODUCTS=(rhel8 rhel9 rhel10)
+          RH_PRODUCTS=${{ env.RH_PRODUCTS }}
           pr_number="${{ github.event.pull_request.number }}"
           # 1.1 Get the updated controls to array
           file="updated_controls"
@@ -237,10 +236,10 @@ jobs:
             poetry run trestlebot sync-cac-content catalog  --repo-path ../oscal-content --committer-email test@redhat.com --committer-name test --branch sync_cac_pr$pr_number --cac-content-root $GITHUB_WORKSPACE/cac-content --cac-policy-id $policy_id --oscal-catalog $policy_id
           done
           # 1.3 Sync the updated controls to OSCAL profiles and component-definition
-          for product in "${RHEL_PRODUCTS[@]}"; do
+          for product in "${RH_PRODUCTS[@]}"; do
             for policy_id in "${updated_controls[@]}"; do
               # Sync the updated controls to OSCAL profile
-              # This sync depends on the specific product avaiable controls
+              # This sync depends on the specific product available controls
               available_controls=$(cat $product"_controls") # Get all the available controls of the product
                   IFS=' ' read -r -a controls_a <<< "$available_controls"
                   for pc in "${controls_a[@]}"; do
@@ -277,11 +276,11 @@ jobs:
         if: ${{ env.CHANGE_FOUND == 'true' }}
         run: |
           cd trestle-bot && source venv/bin/activate
-          RHEL_PRODUCTS=(rhel8 rhel9 rhel10)
+          RH_PRODUCTS=${{ env.RH_PRODUCTS }}
           pr_number="${{ github.event.pull_request.number }}"
           # Get the updated profiles
           # And sync them to OSCAL profile and component-definition
-          for product in "${RHEL_PRODUCTS[@]}"; do
+          for product in "${RH_PRODUCTS[@]}"; do
             file=$product"_updated_profiles"
             if [ -f "$file" ] && [ -s "$file" ]; then
               updated_profiles=($(cat "$file" | tr ' ' '\n' | sort | uniq | tr '\n' ' ' | sed 's/ $//'))
@@ -316,7 +315,7 @@ jobs:
         if: ${{ env.CHANGE_FOUND == 'true' }}
         run: |
           cd trestle-bot && source venv/bin/activate
-          RHEL_PRODUCTS=(rhel8 rhel9 rhel10)
+          RH_PRODUCTS=${{ env.RH_PRODUCTS }}
           pr_number="${{ github.event.pull_request.number }}"
           # 1. Get the rule impacted controls
           file="rule_impacted_controls"
@@ -324,7 +323,7 @@ jobs:
             rule_impacted_controls=($(cat "$file" | tr ' ' '\n' | sort | uniq | tr '\n' ' ' | sed 's/ $//'))
             echo "The rule impacted controls: ${rule_impacted_controls[@]}"
             # 2. Sync the rule impacted controls to OSCAL component-definition
-            for product in "${RHEL_PRODUCTS[@]}"; do
+            for product in "${RH_PRODUCTS[@]}"; do
               # Sync CAC controls' updates to OSCAL content
               for policy_id in "${rule_impacted_controls[@]}"; do
                 while IFS= read -r line; do
@@ -355,7 +354,7 @@ jobs:
           fi
           # 3. Get the rule impacted profiles
           # And sync the impacted profiles to OSCAL component-definition
-          for product in "${RHEL_PRODUCTS[@]}"; do
+          for product in "${RH_PRODUCTS[@]}"; do
             file=$product"_rule_impacted_profiles"
             if [ -f "$file" ] && [ -s "$file" ]; then
               rule_impacted_profiles=($(cat $file | tr ' ' '\n' | sort | uniq | tr '\n' ' ' | sed 's/ $//'))
