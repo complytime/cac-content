@@ -15,13 +15,16 @@ def handle_detected_updates(file_path):
     file_path (str): The path to the file that contains the list of updated file paths.
 
     Returns:
-    tuple: A tuple containing four sets: updated controls, profiles, rules, and variables.
+        Tuple containing:
+        - List of control names
+        - List of profile dictionaries (with profile_name and product)
+        - List of rule and variable names
     """
 
     controls = []
+    profile = {}
     profiles = []
     rules = []
-    vars = []
     # Open the file and process it line by line
     with open(file_path, 'r') as file:
         for line in file:
@@ -33,20 +36,21 @@ def handle_detected_updates(file_path):
                         controlname = 'cis_ocp_1_4_0'
                     controls.append(controlname)
             elif '.profile' in line:
-                profilename = line.split('/')[-1].split('.')[0]
-                profiles.append(profilename)
+                profile["profile_name"] = line.split('/')[-1].split('.')[0]
+                profile["product"] = line.split('/')[1]
+                profiles.append(f'{profile}')
             elif 'rule.yml' in line:
                 rulename = line.split('/')[-2]
                 rules.append(rulename)
             elif '.var' in line and line.endswith('.var'):
                 rulename = line.split('/')[-1].split('.')[0]
-                vars.append(rulename)
-    return set(controls), set(profiles), set(rules), set(vars)
-            
+                rules.append(rulename)
+    return controls, profiles, rules
+
 
 def main(file_path):
-    controls, profiles, rules, vars = handle_detected_updates(file_path)
-    for i in [controls, profiles, rules, vars]:
+    controls, profiles, rules = handle_detected_updates(file_path)
+    for i in [controls, profiles, rules]:
         logging.info(" ".join(i))
 
 

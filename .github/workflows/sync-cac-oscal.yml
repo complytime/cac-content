@@ -151,50 +151,35 @@ jobs:
         if: ${{ env.CHANGE_FOUND == 'true' }}
         run: |
           cat filenames.txt
+          python cac-content/utils/handle_detected_updates.py 'filenames.txt' > updates 2>&1
           cd trestle-bot && source venv/bin/activate
           RH_PRODUCTS=${{ env.RH_PRODUCTS }}
+          i=0
           while IFS= read -r line; do
-            # 1. Get the updated controls
-            if [[ "$line" == *controls/* ]]; then
-              echo "Detect update for control $line ......"
-              control=$(echo $line | rev | cut -f1 -d"/" | rev | cut -f1 -d".")
-              if [[ "$control" == *"SRG-APP"* ]] || [[ "$control" == *"SRG-OS"* ]]; then
-                echo "Ignoring SRG-APP and SRG-OS"
-                continue
-              fi
-              if [[ "$control" == *"section"* ]]; then
-                echo "Section found, setting policy_id to 'cis_ocp_1_4_0'"
-                control="cis_ocp_1_4_0"
-              fi
-              echo $control >> updated_controls
-            fi
-            # 2. Get the updated profiles
-            if [[ "$line" == *.profile* ]]; then
-              echo "Detect update for profile $line ......"
-              profile_name=$(echo $line | rev | cut -f1 -d"/" | rev | cut -f1 -d".")
-              p_product=$(echo $line | cut -f2 -d"/")
-              for product in "${RH_PRODUCTS[@]}"; do
-                if [[ "$p_product" == "$product" ]]; then
+              i=$((i + 1))
+              if [[ $i -eq 1 ]]; then
+                # 1. Get the updated controls
+                echo $line > updated_controls
+              elif [[ $i -eq 2 ]]; then
+                # 2. Get the updated profiles
+                profiles=($(echo "$line"| sed "s/{'/{\"/g; s/': '/\":\"/g; s/', '/\",\"/g; s/'}/\"}/g;"))
+                for profile in "${profiles[@]}"; do
+                  product=$(echo "$profile" | jq -r '.product')
+                  profile_name=$(echo "$profile" | jq -r '.profile_name')
                   echo $profile_name >> $product"_updated_profiles"
-                fi
-              done
-            fi
-            # 3. Get the updated rule and variables,
-            # then convert them to impacted controls and profiles
-            if { [[ "$line" == *rule.yml* ]] || [[ "$line" == *.var* ]]; } && [[ "$line" == *linux_os* ]]; then
-              if [[ "$line" == *.var* ]]; then
-                echo "Detect update for variable $line ......"
-                value=$(echo "$line" | rev | cut -f1 -d"/" | rev | cut -f2 -d"_" | cut -f1 -d".")
-              else
-                echo "Detect update for rule $line ......"
-                value=$(echo "$line" | rev | cut -f2 -d"/" | rev)
+                done
+              elif [[ $i -eq 3 ]]; then
+                # 3. Get the updated rule and variables,
+                # then convert them to impacted controls and profiles
+                rules=($line)
+                for rule in "${rules[@]}"; do
+                  python scripts/get_rule_impacted_files.py $RH_PRODUCTS "$GITHUB_WORKSPACE/cac-content" $value control >> rule_impacted_controls 2>&1
+                  for product in "${RH_PRODUCTS[@]}"; do
+                    python scripts/get_rule_impacted_files.py $product "$GITHUB_WORKSPACE/cac-content" $value profile >> $product"_rule_impacted_profiles" 2>&1
+                  done
+                done
               fi
-              for product in "${RH_PRODUCTS[@]}"; do
-                python scripts/get_rule_impacted_files.py $product "$GITHUB_WORKSPACE/cac-content" $value control >> rule_impacted_controls 2>&1
-                python scripts/get_rule_impacted_files.py $product "$GITHUB_WORKSPACE/cac-content" $value profile >> $product"_rule_impacted_profiles" 2>&1
-              done
-            fi
-          done < "$GITHUB_WORKSPACE"/filenames.txt
+          done < "$GITHUB_WORKSPACE"/updates
       # Step 10: Check if the OSCAL content branch exists
       - name: Check if the OSCAL content branch exists
         if: ${{ env.CHANGE_FOUND == 'true' }}
