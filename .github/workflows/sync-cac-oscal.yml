@@ -212,7 +212,7 @@ jobs:
           # 1.1 Get the updated controls to array
           file="updated_controls"
           if [ -f "$file" ] && [ -s "$file" ]; then
-            updated_controls=($(cat "$file" | tr ' ' '\n' | sort | uniq | tr '\n' ' ' | sed 's/ $//'))
+            updated_controls=($(cat "$file"))
             # Output all the updated controls in the PR
             echo "The updated controls: ${updated_controls[@]}"
           fi
@@ -225,7 +225,7 @@ jobs:
             for policy_id in "${updated_controls[@]}"; do
               # Sync the updated controls to OSCAL profile
               # This sync depends on the specific product available controls
-              available_controls=$(cat $product"_controls") # Get all the available controls of the product
+              available_controls=($(cat $product"_controls")) # Get all the available controls of the product
                   IFS=' ' read -r -a controls_a <<< "$available_controls"
                   for pc in "${controls_a[@]}"; do
                     if [[ "$pc" == "$policy_id" ]]; then
@@ -234,26 +234,7 @@ jobs:
                   done
               # Sync the updated controls to OSCAL component-definition
               # This sync depends on the control' assoicated profile and levels
-              while IFS= read -r line; do
-                map=$(echo "$line" | sed "s/'/\"/g")
-                map_policy_id=$(echo "$map" | jq -r '.policy_id')
-                if [[ "$map_policy_id" == "$policy_id" ]]; then
-                  profile=$(echo "$map" | jq -r '.profile_name')
-                  levels=$(echo "$map" | jq -r '.levels[]')
-                  for level in "${levels[@]}"; do
-                    oscal_profile=$product"-"$policy_id"-"$level
-                    if [[ "$product" == *'rhel'* ]] ; then
-                      type="software"
-                    else
-                      type="service"
-                    fi
-                    sed -i '/href/s|\(trestle://\)[^ ]*\(catalogs\)|\1\2|g' ../oscal-content/profiles/$oscal_profile/profile.json
-                    poetry run trestlebot sync-cac-content component-definition --repo-path ../oscal-content --committer-email test@redhat.com --committer-name test --branch sync_cac_pr$pr_number --cac-content-root $GITHUB_WORKSPACE/cac-content --product $product  --component-definition-type $type --cac-profile $profile  --oscal-profile $oscal_profile
-                    type="validation"
-                    poetry run trestlebot sync-cac-content component-definition --repo-path ../oscal-content --committer-email test@redhat.com --committer-name test --branch sync_cac_pr$pr_number --cac-content-root $GITHUB_WORKSPACE/cac-content --product $product  --component-definition-type $type --cac-profile $profile  --oscal-profile $oscal_profile
-                  done
-                fi
-              done < $product"_map.json"
+              sh ../cac/utils/trestlebot-cli-compd.sh true $policy_id $product $pr_number $GITHUB_WORKSPACE $product"_map.json"
             done
           done
       # Step 12: Sync updated profiles to OSCAL content
@@ -270,29 +251,9 @@ jobs:
             if [ -f "$file" ] && [ -s "$file" ]; then
               updated_profiles=($(cat "$file" | tr ' ' '\n' | sort | uniq | tr '\n' ' ' | sed 's/ $//'))
               echo "The updated profiles for product $product: ${updated_profiles[@]}"
-              while IFS= read -r line; do
-                map=$(echo "$line" | sed "s/'/\"/g")
-                policy_id=$(echo "$map" | jq -r '.policy_id')
-                profile_name=$(echo "$map" | jq -r '.profile_name')
-                for profile in "${updated_profiles[@]}"; do
-                  if [[ "$profile" == "$profile_name" ]]; then
-                    poetry run trestlebot sync-cac-content profile  --repo-path ../oscal-content --committer-email test@redhat.com --committer-name test --branch sync_cac_pr$pr_number --cac-content-root $GITHUB_WORKSPACE/cac-content --product $product --cac-policy-id $policy_id --oscal-catalog $policy_id
-                    levels=$(echo "$map" | jq -r '.levels[]')
-                    for level in "${levels[@]}"; do
-                      oscal_profile=$product"-"$policy_id"-"$level
-                      if [[ "$product" == *'rhel'* ]] ; then
-                        type="software"
-                      else
-                        type="service"
-                      fi
-                      sed -i '/href/s|\(trestle://\)[^ ]*\(catalogs\)|\1\2|g' "../oscal-content/profiles/$oscal_profile/profile.json"
-                      poetry run trestlebot sync-cac-content component-definition --repo-path ../oscal-content --committer-email test@redhat.com --committer-name test --branch sync_cac_pr$pr_number --cac-content-root $GITHUB_WORKSPACE/cac-content --product $product  --component-definition-type $type --cac-profile $profile  --oscal-profile $oscal_profile
-                      type="validation"
-                      poetry run trestlebot sync-cac-content component-definition --repo-path ../oscal-content --committer-email test@redhat.com --committer-name test --branch sync_cac_pr$pr_number --cac-content-root $GITHUB_WORKSPACE/cac-content --product $product  --component-definition-type $type --cac-profile $profile  --oscal-profile $oscal_profile
-                    done
-                  fi
-                done 
-              done < $product"_map.json"
+              for profile in "${updated_profiles[@]}"; do
+                sh ../cac/utils/trestlebot-cli-compd.sh false $profile $product $pr_number $GITHUB_WORKSPACE $product"_map.json"
+              done
             fi
           done
       # Step 13: Sync rule updates to OSCAL component-definition
@@ -311,29 +272,7 @@ jobs:
             for product in "${RH_PRODUCTS[@]}"; do
               # Sync CAC controls' updates to OSCAL content
               for policy_id in "${rule_impacted_controls[@]}"; do
-                while IFS= read -r line; do
-                  map=$(echo "$line" | sed "s/'/\"/g")
-                  map_policy_id=$(echo "$map" | jq -r '.policy_id')
-                  if [[ "$map_policy_id" == "$policy_id" ]]; then
-                    profile=$(echo "$map" | jq -r '.profile_name')
-                    levels=$(echo "$map" | jq -r '.levels[]')
-                    for level in $levels; do
-                      oscal_profile=$product"-"$policy_id"-"$level
-                      # Determine component type
-                      if [[ "$product" == *'rhel'* ]]; then
-                        type="software"
-                      else
-                        type="service"
-                      fi
-                      # Sync CAC content for the component-definition
-                      sed -i '/href/s|\(trestle://\)[^ ]*\(catalogs\)|\1\2|g' "../oscal-content/profiles/$oscal_profile/profile.json"
-                      poetry run trestlebot sync-cac-content component-definition --repo-path ../oscal-content --committer-email test@redhat.com --committer-name test --branch sync_cac_pr$pr_number --cac-content-root $GITHUB_WORKSPACE/cac-content --product $product --component-definition-type $type --cac-profile $profile --oscal-profile $oscal_profile
-                      # Validation sync command
-                      type="validation"
-                      poetry run trestlebot sync-cac-content component-definition --repo-path ../oscal-content --committer-email test@redhat.com --committer-name test --branch sync_cac_pr$pr_number --cac-content-root $GITHUB_WORKSPACE/cac-content --product $product --component-definition-type $type --cac-profile $profile --oscal-profile $oscal_profile
-                    done
-                  fi
-                done < $product"_map.json"
+                sh ../cac/utils/trestlebot-cli-compd.sh true $policy_id $product $pr_number $GITHUB_WORKSPACE $product"_map.json"
               done
             done
           fi
@@ -345,28 +284,9 @@ jobs:
               rule_impacted_profiles=($(cat $file | tr ' ' '\n' | sort | uniq | tr '\n' ' ' | sed 's/ $//'))
               echo "The rule impacted profiles for $product: $rule_impacted_profiles"
               # Sync profiles' updates to OSCAL content
-              while IFS= read -r line; do
-                map=$(echo "$line" | sed "s/'/\"/g")
-                policy_id=$(echo "$map" | jq -r '.policy_id')
-                profile_name=$(echo "$map" | jq -r '.profile_name')
-                for profile in "${rule_impacted_profiles[@]}"; do
-                  if [[ "$profile" == "$profile_name" ]]; then 
-                    levels=$(echo "$map" | jq -r '.levels[]')
-                    for level in "${levels[@]}"; do
-                      oscal_profile=$product"-"$policy_id"-"$level
-                      if [[ "$product" == *'rhel'* ]] ; then
-                        type="software"
-                      else
-                        type="service"
-                      fi
-                      sed -i '/href/s|\(trestle://\)[^ ]*\(catalogs\)|\1\2|g' ../oscal-content/profiles/$oscal_profile/profile.json
-                      poetry run trestlebot sync-cac-content component-definition --repo-path ../oscal-content --committer-email test@redhat.com --committer-name test --branch sync_cac_pr$pr_number --cac-content-root $GITHUB_WORKSPACE/cac-content --product $product  --component-definition-type $type --cac-profile $profile  --oscal-profile $oscal_profile
-                      type="validation"
-                      poetry run trestlebot sync-cac-content component-definition --repo-path ../oscal-content --committer-email test@redhat.com --committer-name test --branch sync_cac_pr$pr_number --cac-content-root $GITHUB_WORKSPACE/cac-content --product $product  --component-definition-type $type --cac-profile $profile  --oscal-profile $oscal_profile
-                    done
-                  fi
-                done
-              done < $product"_map.json"
+              for profile in "${rule_impacted_profiles[@]}"; do
+                sh ../cac/utils/trestlebot-cli-compd.sh false $profile $product $pr_number $GITHUB_WORKSPACE $product"_map.json"
+              done
             fi
           done
       # Step 14: Create PR to OSCAL content
