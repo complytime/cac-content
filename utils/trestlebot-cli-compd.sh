@@ -41,10 +41,10 @@ while IFS= read -r line; do
       else
         type="service"
       fi
-      sed -i '/href/s|\(trestle://\)[^ ]*\(catalogs\)|\1\2|g' ../oscal-content/profiles/$oscal_profile/profile.json
-      poetry run trestlebot sync-cac-content component-definition --repo-path ../oscal-content --committer-email test@redhat.com --committer-name test --branch sync_cac_pr$pr_number --cac-content-root $workspace_path/cac-content --product $product  --component-definition-type $type --cac-profile $profile  --oscal-profile $oscal_profile
+      #sed -i '/href/s|\(trestle://\)[^ ]*\(catalogs\)|\1\2|g' ../oscal-content/profiles/$oscal_profile/profile.json
+      echo "poetry run trestlebot sync-cac-content component-definition --repo-path ../oscal-content --committer-email test@redhat.com --committer-name test --branch sync_cac_pr$pr_number --cac-content-root $workspace_path/cac-content --product $product  --component-definition-type $type --cac-profile $profile  --oscal-profile $oscal_profile"
       type="validation"
-      poetry run trestlebot sync-cac-content component-definition --repo-path ../oscal-content --committer-email test@redhat.com --committer-name test --branch sync_cac_pr$pr_number --cac-content-root $workspace_path/cac-content --product $product  --component-definition-type $type --cac-profile $profile  --oscal-profile $oscal_profile
+      echo "poetry run trestlebot sync-cac-content component-definition --repo-path ../oscal-content --committer-email test@redhat.com --committer-name test --branch sync_cac_pr$pr_number --cac-content-root $workspace_path/cac-content --product $product  --component-definition-type $type --cac-profile $profile  --oscal-profile $oscal_profile"
     done
   fi
 done < $product_mapping_file
