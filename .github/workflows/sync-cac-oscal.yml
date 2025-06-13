@@ -3,9 +3,9 @@ permissions:
   contents: write
   pull-requests: read
 on:
-  push:
-    branches:
-      - master
+  pull_request:
+    types: [opened, synchronize, reopened]
+    
 jobs:
   sync-cac-updates-to-oscal-content:
     runs-on: ubuntu-latest
@@ -27,24 +27,8 @@ jobs:
       - name: Get the commit message and PR number
         run: |
           cd cac-content
-          # Get the latest commit message
-          COMMIT_MSG=$(git log -1 --pretty=%B)
-          # Extract the PR number from the commit message (if it's a merge commit)
-          PR_NUMBER=$(echo "$COMMIT_MSG" | grep -oP '#\K\d+')
-          if [ -n "$PR_NUMBER" ]; then
-            echo "Found PR number: $PR_NUMBER"
-            echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
-            echo "SKIP=false" >> $GITHUB_ENV
-            PR_INFO=$(curl -s "https://api.github.com/repos/${{ github.repository }}/pulls/${PR_NUMBER}")
-            # Extract PR title from the response
-            PR_TITLE=$(echo "$PR_INFO" | jq -r .title)
-            echo "PR Title: $PR_TITLE"
-            if [[ "$PR_TITLE" == *"Auto-generated PR from OSCAL content"* ]]; then
-              echo "The PR comes from OSCAL content. The task of Sync CaC content to OSCAL will exit."
-              echo "Skipping further checks."
-              echo "SKIP=true" >> $GITHUB_ENV
-            fi
-          fi
+          echo "PR_NUMBER=28" >> $GITHUB_ENV
+          echo "SKIP=false" >> $GITHUB_ENV
       # Step 4: Get the access token for content write permission to OSCAL content
       - name: Get GitHub app token
         if: ${{ env.SKIP == 'false' }}
@@ -55,8 +39,7 @@ jobs:
           private-key: ${{ secrets.PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
           repositories: |
-            content
-            oscal-content
+            cac-content
       # Step 5: Detect the updates of CAC content
       - name: Detect files changed by PR
         if: ${{ env.SKIP == 'false' }}
@@ -132,6 +115,8 @@ jobs:
         run: |
           cat filenames.txt
           python cac-content/utils/handle_detected_updates.py 'filenames.txt' > updates 2>&1
+          echo "Run handle_detected_updates..."
+          cat updates
           cd trestle-bot && source venv/bin/activate
           RH_PRODUCTS=${{ env.RH_PRODUCTS }}
           i=0
@@ -139,48 +124,45 @@ jobs:
               i=$((i + 1))
               if [[ $i -eq 1 ]]; then
                 # 1. Get the updated controls
+                # debug
+                echo "Handle detect updated controls ..."
                 echo $line > updated_controls
+                # debug
+                cat updated_controls
               elif [[ $i -eq 2 ]]; then
                 # 2. Get the updated profiles
+                # debug
+                echo "Handle detect updated profiles ..."
                 profiles=($(echo "$line"| sed "s/{'/{\"/g; s/': '/\":\"/g; s/', '/\",\"/g; s/'}/\"}/g;"))
                 for profile in "${profiles[@]}"; do
                   product=$(echo "$profile" | jq -r '.product')
                   profile_name=$(echo "$profile" | jq -r '.profile_name')
                   echo $profile_name >> $product"_updated_profiles"
                 done
+                # debug
+                cat rhel9_updated_profiles
+                cat ocp4_updated_profiles
               elif [[ $i -eq 3 ]]; then
                 # 3. Get the updated rule and variables,
                 # then convert them to impacted controls and profiles
+                echo "Handle detect updated rules ..."
                 rules=($line)
+                # debug
+                echo $rules
+                echo ${rules[@]}
                 for rule in "${rules[@]}"; do
-                  python scripts/get_rule_impacted_files.py $RH_PRODUCTS "$GITHUB_WORKSPACE/cac-content" $value control >> rule_impacted_controls 2>&1
+                  # debug
+                  echo "Getting rule impacted controls ..."
+                  python scripts/get_rule_impacted_files.py rh-product "$GITHUB_WORKSPACE/cac-content" $rule control >> rule_impacted_controls 2>&1
                   for product in "${RH_PRODUCTS[@]}"; do
-                    python scripts/get_rule_impacted_files.py $product "$GITHUB_WORKSPACE/cac-content" $value profile >> $product"_rule_impacted_profiles" 2>&1
+                    echo "Getting rule impacted profiles ..."
+                    python scripts/get_rule_impacted_files.py $product "$GITHUB_WORKSPACE/cac-content" $rule profile >> $product"_rule_impacted_profiles" 2>&1
                   done
                 done
+                # debug
+                cat rule_impacted_controls
               fi
           done < "$GITHUB_WORKSPACE"/updates
-      # Step 10: Check if the OSCAL content branch exists
-      - name: Check if the OSCAL content branch exists
-        if: ${{ env.CHANGE_FOUND == 'true' }}
-        run: |
-          BRANCH_NAME="sync_cac_pr${{ env.PR_NUMBER }}"
-          cd oscal-content
-          branches=$(git branch -r | grep 'origin/sync_cac' | sed 's/origin\///')
-          exist="false"
-          for branch in $branches; do
-            echo $branch
-            if [[ "$branch" == "$BRANCH_NAME" ]]; then
-              echo "OSCAL content branch $BRANCH_NAME exists"
-              git fetch --all
-              git checkout -b sync_cac_pr${{ env.PR_NUMBER }} origin/sync_cac_pr${{ env.PR_NUMBER }}
-              exist="true"
-              break
-            fi
-          done
-          if [[ "$exist" == "false" ]]; then
-            echo "OSCAL content branch $BRANCH_NAME doesn't exist"
-          fi
       # Step 11: Sync updated controls to OSCAL content
       - name: Sync updated controls to OSCAL content
         if: ${{ env.CHANGE_FOUND == 'true' }}
@@ -195,23 +177,26 @@ jobs:
             # Output all the updated controls in the PR
             echo "The updated controls: ${updated_controls[@]}"
           fi
-          # 1.2 Sync the updated controls to OSCAL catalog
-          for policy_id in "${updated_controls[@]}"; do
-            poetry run trestlebot sync-cac-content catalog  --repo-path ../oscal-content --committer-email "openscap-ci@gmail.com" --committer-name "openscap-ci" --branch "sync_cac_pr$pr_number" --cac-content-root "$GITHUB_WORKSPACE/cac-content" --cac-policy-id "$policy_id" --oscal-catalog "$policy_id"
-          done
-          # 1.3 Sync the updated controls to OSCAL profiles and component-definition
+          # 1.2 Sync the updated controls to OSCAL content
           for product in "${RH_PRODUCTS[@]}"; do
             for policy_id in "${updated_controls[@]}"; do
-              # 1.3.1 Sync the updated controls to OSCAL profile
               # This sync depends on the specific product available controls
               available_controls=($(cat $product"_controls")) # Get all the available controls of the product
-              IFS=' ' read -r -a controls_a <<< "$available_controls"
-              for pc in "${controls_a[@]}"; do
+              cat $product"_controls"
+              #IFS=' ' read -r -a controls_a <<< "$available_controls"
+              #echo ${controls_a[@]}
+              #for pc in "${controls_a[@]}"; do
+              for pc in "${available_controls[@]}"; do
+                echo "product_control...."
                 if [[ "$pc" == "$policy_id" ]]; then
-                  poetry run trestlebot sync-cac-content profile  --repo-path ../oscal-content --committer-email "openscap-ci@gmail.com" --committer-name "openscap-ci" --branch "sync_cac_pr$pr_number" --cac-content-root "$GITHUB_WORKSPACE/cac-content" --product "$product" --cac-policy-id "$policy_id" --oscal-catalog "$policy_id"
+                  echo $pc
+                  # 1.2.1 Sync the updated controls to OSCAL profile
+                  echo "poetry run trestlebot sync-cac-content catalog  --repo-path ../oscal-content --committer-email "openscap-ci@gmail.com" --committer-name "openscap-ci" --branch "sync_cac_pr$pr_number" --cac-content-root "$GITHUB_WORKSPACE/cac-content" --cac-policy-id "$policy_id" --oscal-catalog "$policy_id""
+                  # 1.2.2 Sync the updated controls to OSCAL profile
+                  echo "poetry run trestlebot sync-cac-content profile  --repo-path ../oscal-content --committer-email "openscap-ci@gmail.com" --committer-name "openscap-ci" --branch "sync_cac_pr$pr_number" --cac-content-root "$GITHUB_WORKSPACE/cac-content" --product "$product" --cac-policy-id "$policy_id" --oscal-catalog "$policy_id""
                 fi
               done
-              # 1.3.2 Sync the updated controls to OSCAL component-definition
+              # 1.2.3 Sync the updated controls to OSCAL component-definition
               # This sync depends on the control assoicated profile and levels
               sh ../cac-content/utils/trestlebot-cli-compd.sh true $policy_id $product $pr_number $GITHUB_WORKSPACE $product"_map.json"
             done
@@ -237,7 +222,7 @@ jobs:
                   policy_id=$(echo "$map" | jq -r '.policy_id')
                   profile_name=$(echo "$map" | jq -r '.profile_name')
                   if [[ "$profile" == "$profile_name" ]]; then
-                    poetry run trestlebot sync-cac-content profile  --repo-path ../oscal-content --committer-email "openscap-ci@gmail.com" --committer-name "openscap-ci" --branch "sync_cac_pr$pr_number" --cac-content-root "$GITHUB_WORKSPACE/cac-content" --product "$product" --cac-policy-id "$policy_id" --oscal-catalog "$policy_id"
+                    echo "poetry run trestlebot sync-cac-content profile  --repo-path ../oscal-content --committer-email "openscap-ci@gmail.com" --committer-name "openscap-ci" --branch "sync_cac_pr$pr_number" --cac-content-root "$GITHUB_WORKSPACE/cac-content" --product "$product" --cac-policy-id "$policy_id" --oscal-catalog "$policy_id""
                   fi
                 done < $product"_map.json"
                 # 2.2 Sync CaC profile to OSCAL component-definition
@@ -255,6 +240,8 @@ jobs:
           # 1. Get the rule impacted controls
           file="rule_impacted_controls"
           if [ -f "$file" ] && [ -s "$file" ]; then
+            echo "The rule impacted controls:"
+            cat $file
             rule_impacted_controls=($(cat "$file" | tr ' ' '\n' | sort | uniq | tr '\n' ' ' | sed 's/ $//'))
             echo "The rule impacted controls: ${rule_impacted_controls[@]}"
             # 2. Sync the rule impacted controls to OSCAL component-definition
@@ -269,6 +256,8 @@ jobs:
           for product in "${RH_PRODUCTS[@]}"; do
             file=$product"_rule_impacted_profiles"
             if [ -f "$file" ] && [ -s "$file" ]; then
+              echo "the rules impacted profiles:"
+              cat $file
               rule_impacted_profiles=($(cat $file | tr ' ' '\n' | sort | uniq | tr '\n' ' ' | sed 's/ $//'))
               echo "The rule impacted profiles for $product: ${rule_impacted_profiles[@]}"
               # 4. Sync the rule impacted profiles to OSCAL component-definition
@@ -277,28 +266,3 @@ jobs:
               done
             fi
           done
-      # Step 14: Create PR to OSCAL content
-      - name: Create a Pull Request to OSCAL content
-        if: ${{ env.CHANGE_FOUND == 'true' }}
-        run: |
-          cd oscal-content
-          BRANCH_NAME="sync_cac_pr${{ env.PR_NUMBER }}"
-          OWNER="ComplianceAsCode" 
-          REPO="oscal-content"
-          # Check if the PR exists
-          PR_EXISTS=$(gh pr list --repo $OWNER/$REPO \
-            --head $BRANCH_NAME --state open --json id \
-            | jq length)
-          # If the PR doesn't exist, create PR
-          if [ "$PR_EXISTS" -gt 0 ]; then
-            echo "PR $BRANCH_NAME already exists. Skipping PR creation."
-          else
-            echo "Creating PR for new branch: $BRANCH_NAME"
-            gh pr create --repo $OWNER/$REPO \
-              --title "Auto-generated PR from CAC ${{ env.PR_NUMBER }}" \
-              --head "$BRANCH_NAME" \
-              --base "main" \
-              --body "This is an auto-generated PR from CAC ${{ env.PR_NUMBER }} updates"
-          fi
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}

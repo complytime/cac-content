@@ -6,6 +6,7 @@ metadata:
         - marcusburghardt
         - mab879
         - vojtapolasek
+        - huiwang
 
 reference: https://www.cisecurity.org/benchmark/red_hat_linux/
 

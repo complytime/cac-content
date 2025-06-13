@@ -15,6 +15,7 @@ controls:
             - medium
         rules:
             - enable_authselect
+            - audit_rules_session_events
             - var_authselect_profile=sssd
 
     -   id: RHEL-09-171011

@@ -8,6 +8,7 @@ metadata:
         - Vincent056
         - rhmdnd
         - yuumasato
+        - huiwang
 
 reference: https://dl.dod.cyber.mil/wp-content/uploads/stigs/zip/U_RH_OpenShift_Container_Platform_4-12_V2R2_STIG.zip
 

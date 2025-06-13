@@ -11,6 +11,7 @@ metadata:
         - jhrozek
         - rhmdnd
         - Vincent056
+        - huiwang
     version: 1.4.0
 
 description: |-
