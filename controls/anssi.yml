@@ -276,6 +276,7 @@ controls:
           - kernel_config_legacy_vsyscall_xonly
           - kernel_config_x86_vsyscall_emulation
 
+          - kernel_config_strict_kernel_rwx
     - id: R16
       title: Compile options for kernel data structures
       levels:
