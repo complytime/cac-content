@@ -1,9 +1,9 @@
+---
 policy: 'ANSSI-BP-028'
 title: 'Configuration Recommendations of a GNU/Linux System'
 id: anssi
 version: '2.0'
-source: 
-    https://cyber.gouv.fr/sites/default/files/document/linux_configuration-en-v2.pdf
+source: https://cyber.gouv.fr/sites/default/files/document/linux_configuration-en-v2.pdf
 
 levels:
     - id: minimal
@@ -37,7 +37,6 @@ controls:
       status: automated
 #  From ANSSI DAT-24
 #  R1 and R2 Prefer 64 bit OS
-      rules: []
     - id: R2
       title: Hardware configuration
       levels:
@@ -49,7 +48,6 @@ controls:
       notes: >-
           Configurations recommended for this requirement are to be performed at the
           BIOS level.
-      rules: []
       status: manual
 
     # From ANSSI DAT-24
@@ -74,7 +72,6 @@ controls:
           We recommend checking the Secure Boot status using the `mokutil --sb-state`
           or `bootctl status`
           commands.
-      rules: []
       status: manual
 
     - id: R4
@@ -98,7 +95,6 @@ controls:
           We have no automation support for UEFI interfaces and the steps for each
           hardware
           manufacturer can vary.
-      rules: []
       status: manual
 
     - id: R5
@@ -109,7 +105,6 @@ controls:
           A password protecting the boot loader must exist.
           This password must prevent any user from changing their configuration options.
       status: automated
-      rules: []
     - id: R6
       title: Protecting kernel command line parameters
       levels:
@@ -129,7 +124,6 @@ controls:
           Also, it is not trivial to automate creation of such image or configuration
           of the
           Secure Boot mechanism.
-      rules: []
       status: manual
 
     - id: R7
@@ -141,7 +135,6 @@ controls:
           during startup in addition to those already present in the configuration
           files of the bootloader (/boot/grub/menu.lst or /etc/default/grub).
       status: automated
-      rules: []
     - id: R8
       title: Memory configuration options
       levels:
@@ -190,7 +183,6 @@ controls:
           Prohibition of loading modules (except those already loaded to this point)
           kernel.modules_disabled = 1
       status: automated
-      rules: []
     - id: R11
       title: Yama module sysctl configuration
       levels:
@@ -200,7 +192,6 @@ controls:
           passing the security = yama argument to the kernel) and configure the
           sysctl kernel.yama.ptrace_scope to a value of at least 1.
       status: automated
-      rules: []
     - id: R12
       title: IPv4 configuration options
       levels:
@@ -236,7 +227,6 @@ controls:
 #  Disable support for "router solicitations"
 #  net.ipv6.conf.all.router_solicitations = 0
 #  net.ipv6.conf.default.router_solicitations = 0
-      rules: []
       related_rules:
           # Rules to select when disabling the IPv6 stack.
           - sysctl_net_ipv6_conf_all_disable_ipv6
@@ -250,7 +240,6 @@ controls:
           The rule for the /proc file system is not implemented
       status: automated
 #  Disable coredump creation for setuid executables
-      rules: []
     - id: R15
       title: Compile options for memory management
       levels:
@@ -384,7 +373,6 @@ controls:
           Unless a X86 32bit kernel is explicitly supported by one of products in
           the project, this
           requirement is set to not applicable.
-      rules: []
       status: not applicable
 
     - id: R25
@@ -409,7 +397,6 @@ controls:
           Unless a ARM 32bit kernel is explicitly supported by one of products in
           the project, this
           requirement is set to not applicable.
-      rules: []
       status: not applicable
 
     - id: R27
@@ -430,7 +417,6 @@ controls:
           - intermediary
       status: automated
 #  this covers nodev options
-      rules: []
       related_rules:
           # /proc hidepid = 2 Contains process information and the system
           - mount_option_proc_hidepid
@@ -451,7 +437,6 @@ controls:
           to restrict the access to /boot are selected. It is not changed how the
           /boot is mounted.
       status: automated
-      rules: []
       related_rules:
           - mount_option_boot_noauto
 
@@ -466,7 +451,6 @@ controls:
           whose owners don't use the system anymore, or users created by services
           or applications that should not be used.
           Automation by itself cannot discern which accounts are used or not.
-      rules: []
       status: manual
 
     - id: R31
@@ -530,7 +514,6 @@ controls:
           was given a
           nominative administration account separate from his normal user account.
       status: automated
-      rules: []
     - id: R34
       title: Deactivation of service accounts
       levels:
@@ -541,7 +524,6 @@ controls:
           but their values
           are not enforced by the OS and can be changed over time.
           Assisting rules could list users which are not disabled for manual review.
-      rules: []
       status: manual
 
     - id: R35
@@ -555,7 +537,6 @@ controls:
           UIDs of such accounts are generally between SYS_UID_MIN and SYS_UID_MAX,
           but their values
           are not enforced by the OS and can be changed over time.
-      rules: []
       status: manual
 
     - id: R36
@@ -621,15 +602,13 @@ controls:
           - var_sudo_umask=0077
     - id: R40
       title: Privileges of target sudo users
-      description: The targeted users of a rule should be, as much as possible, 
-          non privileged users.
+      description: The targeted users of a rule should be, as much as possible, non privileged 
+          users.
       levels:
           - intermediary
       status: automated
-      rules: []
     - id: R41
-      title: Limiting the number of commands requiring the use of the EXEC 
-          option
+      title: Limiting the number of commands requiring the use of the EXEC option
       levels:
           - enhanced
       description: >-
@@ -639,7 +618,6 @@ controls:
           Human review is required to assess if the set of commands requiring EXEC
           is minimal.
           An auxiliary rule could list rules containing EXEC tag, for analysis.
-      rules: []
       status: manual
 
     - id: R42
@@ -648,19 +626,16 @@ controls:
           - intermediary
       description: The sudoers configuration rules should not involve negation.
       status: automated
-      rules: []
     - id: R43
       title: Explicit arguments in sudo specifications
       levels:
           - intermediary
       status: automated
-      rules: []
     - id: R44
       title: Editing files with sudo
       levels:
           - intermediary
-      description: A file requiring sudo to be edited, must be edited through 
-          the sudoedit command.
+      description: A file requiring sudo to be edited, must be edited through the sudoedit command.
       notes: >-
           In R62 we established that the sudoers files should not use negations, thus
           the approach
@@ -669,7 +644,6 @@ controls:
           But it is difficult to ensure that allowed binaries aren't text editors
           without human
           review.
-      rules: []
       status: manual
 
     - id: R45
@@ -679,7 +653,6 @@ controls:
       description: >-
           All AppArmor security profiles on the system must be enabled by default.
       status: automated
-      rules: []
     - id: R46
       title: Activate SELinux with the Targeted Policy
       levels:
@@ -700,9 +673,8 @@ controls:
           Interactive non-privileged users of a system must be confined by associating
           them with a SELinux
           confined user.
-      notes: Interactive users who still need to perform administrative tasks 
-          should not be confined with user_u.
-      rules: []
+      notes: Interactive users who still need to perform administrative tasks should not be 
+          confined with user_u.
       status: manual
 
     - id: R48
@@ -718,10 +690,9 @@ controls:
           secure_mode_insmod to on, prohibits dynamic loading of modules by any process;
           ssh_sysadm_login to off, forbids SSH logins to connect directly in sysadmin
           role.
-      notes: In RHEL, the SELinux boolean allow_execheap is renamed to 
-          selinuxuser_execheap, and the boolean allow_execstack is renamed to 
-          selinuxuser_execstack. And allow_execmem is not available, 
-          deny_execmem provides the same functionality.
+      notes: In RHEL, the SELinux boolean allow_execheap is renamed to selinuxuser_execheap, and 
+          the boolean allow_execstack is renamed to selinuxuser_execstack. And allow_execmem is not
+          available, deny_execmem provides the same functionality.
       status: automated
       rules:
           - var_selinuxuser_execheap=off
@@ -751,7 +722,6 @@ controls:
       levels:
           - intermediary
       status: automated
-      rules: []
     - id: R51
       title: Sensitive and trusted files
       levels:
@@ -767,7 +737,6 @@ controls:
           The second involves removal of any default secret or trusted element
           configured by the operating system during install process, e.g. default
           known passwords.
-      rules: []
       status: documentation
 
     - id: R52
@@ -783,7 +752,6 @@ controls:
           considered a finding. Since different use cases can require different
           permissions for named pipes / sockets, it is not possible to perform this
           check automatically.
-      rules: []
       status: manual
 
     - id: R53
@@ -791,13 +759,11 @@ controls:
       levels:
           - minimal
       status: automated
-      rules: []
     - id: R54
       title: Sticky bit and write access rights
       levels:
           - minimal
       status: automated
-      rules: []
     - id: R55
       title: Temporary directories dedicated to accounts
       levels:
@@ -805,8 +771,7 @@ controls:
       description: >-
           Each user or service account must have its own temporary directory
           and dispose of it exclusively.
-      notes: The approach of the selected rules is to use and configure 
-          pam_namespace module.
+      notes: The approach of the selected rules is to use and configure pam_namespace module.
       status: automated
       rules:
           - var_polyinstantiation_enabled=on
@@ -827,7 +792,6 @@ controls:
           remediation
           should be reviewed.
       status: automated
-      rules: []
     - id: R57
       title: Executable with special rights setuid root and setgid root
       levels:
@@ -839,9 +803,7 @@ controls:
           When only administrators are expected to execute them, these special rights
           should
           be removed and prefer them commands like su or sudo, which can be monitored
-      notes: There could be rules to list all executables with setuid root or 
-          setgid root rights.
-      rules: []
+      notes: There could be rules to list all executables with setuid root or setgid root rights.
       status: manual
 
     - id: R58
@@ -858,15 +820,13 @@ controls:
           As a future improvement, there could be rules assisting assessment by listing
           the installed
           packages.
-      rules: []
       status: manual
 
     - id: R59
       title: Official package repositories
       levels:
           - minimal
-      description: Only up-to-date official repositories of the distribution 
-          must be used.
+      description: Only up-to-date official repositories of the distribution must be used.
       notes: >-
           It is not trivial to distinguish an official repository from an unofficial
           one.
@@ -877,7 +837,6 @@ controls:
           of the packages.
           If the public key of a repository is not installed, the repo is not trusted.
       status: automated
-      rules: []
     - id: R60
       title: Hardened package repositories
       levels:
@@ -888,17 +847,14 @@ controls:
           hardening measures.
           Between two packages providing the same service, those subject to hardening
           (at compilation, installation, or default configuration) must be preferred.
-      rules: []
       status: not applicable
 
     - id: R61
       title: Regular updates
       levels:
           - minimal
-      notes: Check the vendor CVE feed and configure automatic install of 
-          security related updates.
+      notes: Check the vendor CVE feed and configure automatic install of security related updates.
       status: automated
-      rules: []
     - id: R62
       title: Minimization of installed services
       levels:
@@ -918,7 +874,6 @@ controls:
           In general, use of obsolete or insecure services is not recommended and
           we remove some
           of these in this recommendation.
-      rules: []
     - id: R63
       title: Minimization of services configuration
       levels:
@@ -933,7 +888,6 @@ controls:
       notes: >-
           Define a list of most problematic components or features to be hardened
           or restricted.
-      rules: []
       status: manual
 
     - id: R64
@@ -962,7 +916,6 @@ controls:
       notes: >-
           Using automation to restrict access and chroot services is not generally
           reliable.
-      rules: []
       status: manual
 
     - id: R66
@@ -978,7 +931,6 @@ controls:
           It may be interesting to point out virtualization components that are installed
           and
           should be hardened.
-      rules: []
       status: manual
 
     - id: R67
@@ -995,7 +947,6 @@ controls:
           service can use IPA, AD or LDAP as a remote database containing information required for authentication.
           In case LDAP is configured manually, there are several configuration options which should be chedked.
       status: automated
-      rules: []
       related_rules:
           - package_sssd-ipa_installed
 
@@ -1027,7 +978,6 @@ controls:
           Another such service is winbind which is by default configured to connect securely to Samba domains.
           Other relevant services are NIS and Hesiod. These should not be used.
       status: pending
-      rules: []
       related_rules:
           - no_nis_in_nsswitch
 
@@ -1035,7 +985,6 @@ controls:
       title: Separation of System Accounts and Directory Administrator
       levels:
           - intermediary
-      rules: []
       status: manual
 
     - id: R71
@@ -1057,7 +1006,6 @@ controls:
           be customized for the systems deployment requirements.
       status: automated
 #  Based on DAT-PA-012 R5
-      rules: []
     - id: R72
       title: Service Activity Logs
       levels:
@@ -1066,7 +1014,6 @@ controls:
           Each service must have a dedicated event logging journal on the system.
           This log must only be accessible by the syslog server, and must not be readable,
           editable or deletable by the service directly.
-      rules: []
       status: documentation  # How to enable syslog for each service installed in the system
 
     - id: R73
@@ -1076,13 +1023,11 @@ controls:
       description: >-
           The logging of the system activity must be done through the auditd service.
       status: automated
-      rules: []
     - id: R74
       title: Configuring the local messaging service
       levels:
           - intermediary
       status: automated
-      rules: []
     - id: R75
       title: Messaging Aliases for Service Accounts
       levels:
@@ -1092,7 +1037,6 @@ controls:
           Only the alias for root user is covered by the rule.
           The other services cannot be reliably covered, as there is no simple way
           of determining what is a service account.
-      rules: []
     - id: R76
       title: Sealing and integrity of files
       levels:
@@ -1123,7 +1067,6 @@ controls:
           of the one on which the sealing is done.
           Check section "Database and config signing in AIDE manual"
           https://aide.github.io/doc/#signing
-      rules: []
       status: does not meet
 
     - id: R78
@@ -1138,7 +1081,6 @@ controls:
           Manual analysis is required to determine if services are hosted appropriately
           in
           separate or isolated system while maintaining functionality.
-      rules: []
       status: manual
 
     - id: R79
@@ -1161,12 +1103,10 @@ controls:
       title: Minimization of network services
       levels:
           - minimal
-      description: All network services must be listening on the correct network
-          intefaces.
+      description: All network services must be listening on the correct network intefaces.
       notes: >-
           Manual review is necessary to decide if the list of resident daemons is
           minimal.
           Assisting rules could be created to list sevices listening on the network
           for manual review.
-      rules: []
       status: manual
