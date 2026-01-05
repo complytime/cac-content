@@ -514,7 +514,7 @@ controls:
           - sysctl_fs_protected_symlinks
 
     - id: '7.2'
-      title: Periodic Compliance Scans
+      title: Periodic Compliance Scans - TEST
       description: >-
           Users should perform periodic system scans and remediations with the Common User Security Profile
           by using the oscap tool or SCAP Workbench.
